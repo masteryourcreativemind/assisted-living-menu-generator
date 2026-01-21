@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assisted Living Weekly Menu Generator - PHP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-generate {
+            background: #48bb78;
+            color: white;
+            font-size: 1.1em;
+            grid-column: 1 / -1;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-generate:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-export {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #dd6b20;
+            transform: translateY(-2px);
+        }
+
+        .btn-clear {
+            background: #ef5350;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #e53935;
+            transform: translateY(-2px);
+        }
+
+        .menu-display {
+            grid-column: 1 / -1;
+            margin-top: 30px;
+            border-top: 3px solid #667eea;
+            padding-top: 30px;
+        }
+
+        .menu-display h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #667eea;
+            font-size: 2em;
+        }
+
+        .day-menu {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+        }
+
+        .day-menu h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .menu-section {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .menu-section h4 {
+            color: #764ba2;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .menu-item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.05em;
+            margin-bottom: 8px;
+        }
+
+        .menu-item-desc {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .ingredients-list {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .ingredients-list li {
+            margin: 5px 0;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        .instructions-list {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .instructions-list li {
+            margin: 8px 0;
+            color: #333;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .recipe-notes {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .print-section {
+            text-align: center;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-top: 20px;
+            grid-column: 1 / -1;
+        }
+
+        .print-section button {
+            background: #3182ce;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 5px;
+        }
+
+        .print-section button:hover {
+            background: #2c5aa0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+            color: #999;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #c33;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #3c3;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            .content > .section:nth-child(n+1):nth-child(-n+5) {
+                display: none;
+            }
+
+            .menu-display {
+                grid-column: auto;
+                border-top: none;
+                padding-top: 0;
+            }
+
+            .print-section {
+                display: none;
+            }
+
+            header {
+                page-break-after: avoid;
+            }
+
+            .week-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍽️ Assisted Living Weekly Menu Generator</h1>
+            <p>Auto-Generate Recipes, Soups, Specials & Breakfast Menu</p>
+        </header>
+
+        <div class="content">
+            <!-- Settings Section -->
+            <div class="section">
+                <h2>⚙️ Generator Settings</h2>
+                <div class="input-group">
+                    <label for="week-select">Select Week:</label>
+                    <input type="week" id="week-select">
+                </div>
+                <div class="input-group">
+                    <label for="serving-size">Serving Size (residents):</label>
+                    <input type="number" id="serving-size" value="25" min="10" max="100">
+                </div>
+                <button class="btn-generate" onclick="generateFullWeek()">🚀 Generate Full Week Menu</button>
+                <button class="btn-generate" onclick="regenerateDay()" style="background: #3182ce; margin-top: 10px;">🔄 Regenerate Single Day</button>
+            </div>
+
+            <!-- Day Selector for Regenerate -->
+            <div class="section">
+                <h2>📅 Select Day to Regenerate</h2>
+                <div class="input-group">
+                    <label for="day-regenerate">Choose Day:</label>
+                    <select id="day-regenerate">
+                        <option value="0">Monday</option>
+                        <option value="1">Tuesday</option>
+                        <option value="2">Wednesday</option>
+                        <option value="3">Thursday</option>
+                        <option value="4">Friday</option>
+                        <option value="5">Saturday</option>
+                        <option value="6">Sunday</option>
+                    </select>
+                </div>
+                <p style="color: #666; font-size: 0.9em; margin-top: 10px;">💡 Tip: Use this to replace just one day's menu while keeping others.</p>
+            </div>
+
+            <!-- Menu Display Area -->
+            <div class="menu-display" id="menu-display"></div>
+
+            <!-- Print/Export Section -->
+            <div class="print-section">
+                <button class="btn-export" onclick="exportMenuAsText()">📥 Export as Text</button>
+                <button class="btn-export" onclick="exportMenuAsCSV()">📊 Export as CSV</button>
+                <button class="btn-export" onclick="window.print()">🖨️ Print Menu</button>
+                <button class="btn-clear" onclick="clearMenu()">🗑️ Clear Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Menu Data Storage
+        let weeklyMenu = {
+            week: new Date().toISOString().split('T')[0],
+            servingSize: 25,
+            days: []
+        };
+
+        const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        // Comprehensive Recipe Database
+        const recipeDatabase = {
+            soups: [
+                {
+                    name: "Chicken Noodle Soup",
+                    description: "Light and comforting classic with soft noodles",
+                    ingredients: [
+                        "Low-sodium chicken broth - 4 gallons",
+                        "Diced chicken breast - 5 lbs",
+                        "Carrots, diced - 2 lbs",
+                        "Celery, diced - 2 lbs",
+                        "Onion, diced - 1 lb",
+                        "Egg noodles - 3 lbs",
+                        "Parsley or mixed herbs - 1 cup",
+                        "Black pepper - to taste"
+                    ],
+                    notes: "Chop vegetables small for easier chewing. Low-sodium broth suitable for seniors with dietary restrictions."
+                },
+                {
+                    name: "Tomato Basil Soup",
+                    description: "Smooth, velvety tomato soup with fresh basil notes",
+                    ingredients: [
+                        "Low-sodium tomato puree - 3 gallons",
+                        "Vegetable broth - 1 gallon",
+                        "Onion, diced - 1.5 lbs",
+                        "Garlic, minced - 0.5 lb",
+                        "Olive oil - 2 cups",
+                        "Fresh basil - 1 cup",
+                        "Black pepper - to taste",
+                        "Heavy cream (optional) - 1 quart"
+                    ],
+                    notes: "Can add cream for richer texture. Basil adds nutritional value. Blend if smoother texture desired."
+                },
+                {
+                    name: "Lentil Soup",
+                    description: "Hearty, protein-rich soup with vegetables",
+                    ingredients: [
+                        "Dried lentils - 4 lbs",
+                        "Low-sodium vegetable broth - 5 gallons",
+                        "Onion, diced - 1.5 lbs",
+                        "Carrot, diced - 2 lbs",
+                        "Celery, diced - 1.5 lbs",
+                        "Garlic, minced - 0.5 lb",
+                        "Cumin - 2 tablespoons",
+                        "Turmeric - 1 tablespoon",
+                        "Black pepper - to taste"
+                    ],
+                    notes: "Excellent source of fiber and protein. Cook lentils until very soft."
+                },
+                {
+                    name: "Butternut Squash Soup",
+                    description: "Smooth, creamy soup with warm spices",
+                    ingredients: [
+                        "Butternut squash, cubed - 8 lbs",
+                        "Onion, diced - 1.5 lbs",
+                        "Garlic, minced - 0.5 lb",
+                        "Low-sodium vegetable broth - 4 gallons",
+                        "Olive oil - 1 cup",
+                        "Cinnamon - 1 tablespoon",
+                        "Nutmeg - 0.5 tablespoon",
+                        "Black pepper - to taste"
+                    ],
+                    notes: "Blend until smooth for best texture. Can add milk or coconut milk for creaminess."
+                },
+                {
+                    name: "Chicken and Rice Soup",
+                    description: "Warm comfort soup with tender chicken and rice",
+                    ingredients: [
+                        "Low-sodium chicken broth - 4 gallons",
+                        "Cooked chicken, diced - 4 lbs",
+                        "Cooked white rice - 3 lbs",
+                        "Carrot, diced - 2 lbs",
+                        "Celery, diced - 1.5 lbs",
+                        "Onion, diced - 1 lb",
+                        "Fresh parsley - 1 cup",
+                        "Black pepper - to taste"
+                    ],
+                    notes: "Rice should be soft; cook longer if needed. Good for residents with swallowing difficulties."
+                },
+                {
+                    name: "Split Pea Soup",
+                    description: "Classic creamy pea soup with a hint of ham",
+                    ingredients: [
+                        "Dried split peas - 4 lbs",
+                        "Low-sodium chicken/vegetable broth - 5 gallons",
+                        "Onion, diced - 1.5 lbs",
+                        "Carrot, diced - 2 lbs",
+                        "Celery, diced - 1.5 lbs",
+                        "Potatoes, diced - 2 lbs",
+                        "Garlic, minced - 0.5 lb",
+                        "Diced ham (optional) - 2 lbs",
+                        "Black pepper - to taste"
+                    ],
+                    notes: "Cook until peas are very soft. Can be blended for smoother texture."
+                },
+                {
+                    name: "Potato Leek Soup",
+                    description: "Mild, creamy soup with leeks and tender potatoes",
+                    ingredients: [
+                        "Potatoes, diced - 5 lbs",
+                        "Leeks, sliced (white part) - 3 lbs",
+                        "Onion, diced - 1 lb",
+                        "Low-sodium chicken/vegetable broth - 4 gallons",
+                        "Olive oil or butter - 1 cup",
+                        "Black pepper - to taste",
+                        "Fresh thyme - 0.5 cup"
+                    ],
+                    notes: "Blend halfway for creamier texture without adding cream. Good for residents with limited sodium needs."
+                },
+                {
+                    name: "Vegetable Minestrone",
+                    description: "Hearty Italian-style vegetable soup with pasta",
+                    ingredients: [
+                        "Low-sodium vegetable broth - 4 gallons",
+                        "Diced tomatoes - 3 lbs",
+                        "Zucchini, diced - 2 lbs",
+                        "Green beans, cut - 2 lbs",
+                        "Carrots, diced - 2 lbs",
+                        "Onion, diced - 1.5 lbs",
+                        "Celery, diced - 1 lb",
+                        "Spinach, chopped - 1 lb",
+                        "Small pasta (ditalini) - 1.5 lbs",
+                        "Italian herbs - 2 tablespoons"
+                    ],
+                    notes: "Add pasta near end of cooking. Excellent for nutrition and variety."
+                }
+            ],
+            
+            dailySpecials: [
+                {
+                    name: "Baked Salmon with Lemon",
+                    description: "Tender baked salmon fillet with fresh lemon butter sauce",
+                    ingredients: [
+                        "Salmon fillets - 8 lbs",
+                        "Butter - 1 lb",
+                        "Fresh lemon juice - 1 cup",
+                        "Garlic, minced - 0.5 lb",
+                        "Fresh dill - 1 cup",
+                        "Low-sodium fish broth (optional) - 2 cups",
+                        "Black pepper - to taste",
+                        "Olive oil - 0.5 cup"
+                    ],
+                    instructions: [
+                        "Preheat oven to 375°F",
+                        "Place salmon on parchment-lined baking sheets",
+                        "Mix butter, lemon juice, garlic, and dill",
+                        "Spread mixture over salmon",
+                        "Bake for 15-18 minutes until flakes easily",
+                        "Portion into individual servings"
+                    ],
+                    notes: "Excellent omega-3 source. Serve with soft vegetables."
+                },
+                {name:"Grilled Tilapia with Dill",description:"Mild white fish with fresh dill and lemon",ingredients:["Tilapia fillets - 8 lbs","Olive oil - 1 cup","Lemon juice - 1 cup","Fresh dill - 1 cup","Garlic, minced - 0.5 lb","Black pepper - to taste"],instructions:["Preheat oven to 375°F","Place tilapia on parchment paper","Season with dill, garlic, and lemon","Bake 12-15 minutes until flakes easily","Serve with lemon wedges"],notes:"Mild flavor, very soft texture"},{name:"Braised Lamb Shanks",description:"Tender, fall-apart lamb in rich broth",ingredients:["Lamb shanks - 8 lbs","Low-sodium beef broth - 4 gallons","Carrots, chunked - 2 lbs","Celery, chunked - 1.5 lbs","Onion, diced - 1.5 lbs","Tomato paste - 0.5 cup","Rosemary - 0.5 cup","Bay leaves - 3"],instructions:["Brown lamb in batches","Add vegetables and broth","Simmer 2-3 hours until very tender","Remove meat from bone if needed","Serve with soft vegetables"],notes:"May require supervision for eating"},{name:"Chicken Parmesan",description:"Breaded chicken with marinara and melted cheese",ingredients:["Chicken breasts - 8 lbs","Breadcrumbs (soft) - 2 lbs","Eggs - 12","Marinara sauce - 2 gallons","Mozzarella cheese, shredded - 2 lbs","Parmesan cheese - 1 lb","Olive oil - 1 cup"],instructions:["Pound chicken breasts thin","Dip in egg, then breadcrumbs","Fry until golden","Top with sauce and cheese","Bake at 375°F for 20 minutes"],notes:"Cut into manageable pieces"},{name:"Slow Cooker Pot Roast",description:"Tender beef with vegetables in broth",ingredients:["Beef chuck roast - 10 lbs","Potatoes, chunked - 4 lbs","Carrots, cut thick - 3 lbs","Celery, chunked - 1.5 lbs","Onion, quartered - 2 lbs","Low-sodium beef broth - 3 gallons","Thyme - 1 tablespoon","Bay leaves - 3"],instructions:["Place vegetables in slow cooker","Add beef and broth","Cook on low 6-8 hours","Meat should shred easily","Portion into trays"],notes:"Very tender, easy to chew"},{name:"Turkey Meatballs in Tomato Sauce",description:"Lean meatballs in Italian marinara",ingredients:["Ground turkey - 8 lbs","Breadcrumbs - 1 lb","Eggs - 8","Onion, minced - 1 lb","Parmesan cheese - 0.5 lb","Marinara sauce - 3 gallons","Garlic, minced - 0.5 lb","Italian herbs - 2 tablespoons"],instructions:["Mix turkey, breadcrumbs, eggs, cheese","Form into 1-inch balls","Bake at 375°F for 25 minutes","Add to heated marinara","Simmer 15 minutes"],notes:"Soft, easy to eat with spoon"},{name:"Baked Flounder with Capers",description:"Delicate white fish with briny capers",ingredients:["Flounder fillets - 8 lbs","Butter - 1 lb","Capers - 1 cup","Lemon juice - 1 cup","Garlic, minced - 0.5 lb","Fresh parsley - 1 cup","Black pepper - to taste"],instructions:["Preheat oven to 375°F","Arrange flounder on baking sheets","Top with caper butter","Bake 12-14 minutes","Serve with lemon"],notes:"Very delicate, handle gently"},{name:"Chicken and Dumplings",description:"Comforting chicken in broth with soft dumplings",ingredients:["Cooked chicken, diced - 5 lbs","Low-sodium chicken broth - 5 gallons","Carrots, diced - 2 lbs","Celery, diced - 1.5 lbs","Onion, diced - 1 lb","Biscuit dough - 3 lbs","Fresh thyme - 0.5 cup","Black pepper - to taste"],instructions:["Bring broth to boil","Add vegetables and chicken","Drop dumplings by spoon","Simmer 15-20 minutes","Serve in bowls"],notes:"Warm, comforting classic"},{name:"Herb-Crusted Pork Chops",description:"Tender pork with herb crust",ingredients:["Pork loin chops - 8 lbs","Breadcrumbs - 1.5 lbs","Eggs - 10","Rosemary - 0.5 cup","Thyme - 0.5 cup","Garlic, minced - 0.5 lb","Olive oil - 1 cup","Lemon juice - 0.5 cup"],instructions:["Mix breadcrumbs with herbs","Dip chops in egg","Coat with herb mixture","Bake at 375°F for 20-25 minutes","Rest before serving"],notes:"Ensure cooked through to 145°F"},{name:"Seafood Scampi over Pasta",description:"Shrimp and scallops in garlic butter sauce",ingredients:["Shrimp, peeled - 4 lbs","Scallops - 3 lbs","Butter - 1 lb","Garlic, minced - 1 lb","White wine - 2 cups","Lemon juice - 1 cup","Pasta (soft cooked) - 5 lbs","Fresh parsley - 1 cup"],instructions:["Cook pasta until very soft","Heat butter and garlic","Add shrimp and scallops","Cook 3-4 minutes","Toss with pasta"],notes:"Serve immediately while warm"},{name:"Chicken Creole",description:"Spiced chicken in tomato sauce with vegetables",ingredients:["Chicken breasts, diced - 8 lbs","Onion, diced - 2 lbs","Bell peppers, diced - 2 lbs","Celery, diced - 1.5 lbs","Diced tomatoes - 3 lbs","Chicken broth - 2 cups","Paprika - 1 tablespoon","Cayenne - 0.5 teaspoon"],instructions:["Sauté vegetables","Add chicken and broth","Simmer 30 minutes","Add tomatoes and spices","Cook 15 minutes more"],notes:"Mild spice level"},{name:"Baked Halibut with Asparagus",description:"Tender halibut with fresh asparagus",ingredients:["Halibut fillets - 8 lbs","Fresh asparagus - 3 lbs","Olive oil - 1 cup","Lemon - 3 whole","Garlic, minced - 0.5 lb","Black pepper - to taste"],instructions:["Preheat oven to 375°F","Arrange halibut with asparagus","Drizzle with oil and lemon","Bake 15-18 minutes","Serve with pan juices"],notes:"Light and healthy"},{name:"Beef Stroganoff",description:"Tender beef in creamy mushroom sauce",ingredients:["Beef sirloin, cubed - 8 lbs","Mushrooms, sliced - 3 lbs","Onion, diced - 1.5 lbs","Low-sodium beef broth - 2 cups","Sour cream - 2 quarts","Egg noodles - 4 lbs","Paprika - 1 tablespoon"],instructions:["Brown beef","Sauté mushrooms and onions","Add broth and beef","Simmer 1 hour","Stir in sour cream","Serve over soft noodles"],notes:"Rich and satisfying"},{name:"Chicken Piccata",description:"Tender chicken with lemon and capers",ingredients:["Chicken breasts - 8 lbs","Flour - 1 lb","Lemon juice - 1 cup","Capers - 1 cup","Butter - 1 lb","Olive oil - 0.5 cup","Chicken broth - 1 cup"],instructions:["Pound chicken thin","Coat lightly with flour","Sauté until golden","Add lemon juice and capers","Simmer 5 minutes"],notes:"Tangy, light sauce"},{name:"Glazed Ham",description:"Honey-glazed ham with pineapple",ingredients:["Precooked ham - 10 lbs","Honey - 1 cup","Brown sugar - 1 cup","Mustard - 0.5 cup","Pineapple chunks - 2 lbs","Cloves - 20","Water - 1 cup"],instructions:["Score ham in diamond pattern","Mix honey, sugar, mustard","Brush glaze on ham","Stud with cloves","Bake at 325°F for 2.5 hours","Baste frequently with glaze"],notes:"Special occasion favorite"},{name:"Lemon Herb Chicken Thighs",description:"Juicy chicken thighs with citrus",ingredients:["Chicken thighs - 10 lbs","Lemon juice - 1 cup","Olive oil - 1 cup","Garlic, minced - 0.5 lb","Rosemary - 0.5 cup","Thyme - 0.5 cup","Black pepper - to taste"],instructions:["Marinate chicken 2 hours","Roast at 375°F for 35-40 minutes","Rest 5 minutes","Slice or serve whole"],notes:"Flavorful and moist"},{name:"Seafood Newburg",description:"Shrimp and crab in creamy butter sauce",ingredients:["Shrimp, peeled - 4 lbs","Crab meat - 3 lbs","Butter - 1.5 lbs","Heavy cream - 2 quarts","Sherry wine - 1 cup","Egg yolks - 10","Paprika - 1 tablespoon"],instructions:["Heat butter and cream","Add shrimp and crab","Cook gently 5 minutes","Temper egg yolks with cream","Combine carefully","Serve over soft toast"],notes:"Elegant preparation"},{name:"Chicken Marsala",description:"Tender chicken in wine sauce with mushrooms",ingredients:["Chicken breasts - 8 lbs","Mushrooms, sliced - 3 lbs","Marsala wine - 2 cups","Butter - 1 lb","Garlic, minced - 0.5 lb","Fresh parsley - 1 cup"],instructions:["Pound chicken thin","Sauté until golden","Set aside","Sauté mushrooms","Add wine and butter","Return chicken","Simmer 10 minutes"],notes:"Sophisticated flavor profile"},{name:"Baked Trout with Herbs",description:"Whole baked trout with fresh herb seasoning",ingredients:["Whole trout - 8 lbs","Fresh herbs (dill, parsley) - 1 cup","Butter - 1 lb","Lemon - 4 whole","Garlic - 4 cloves","Black pepper - to taste"],instructions:["Fill trout cavity with herbs and lemon","Top with butter","Wrap in foil","Bake at 375°F for 25-30 minutes","Remove bones before serving"],notes:"Whole fish should be filleted for seniors"},{name:"Turkey Pot Pie",description:"Creamy turkey with vegetables under biscuit crust",ingredients:["Ground turkey - 8 lbs","Carrots, diced - 2 lbs","Celery, diced - 1.5 lbs","Peas, frozen - 2 lbs","Low-sodium chicken broth - 3 cups","Heavy cream - 1 quart","Butter - 1 lb","Biscuit dough - 2 lbs"],instructions:["Cook turkey","Sauté vegetables","Add broth and cream","Transfer to casserole dishes","Top with biscuit dough","Bake at 375°F for 30-35 minutes"],notes:"Warm, comforting meal"},{name:"Baked Catfish",description:"Southern-style baked catfish",ingredients:["Catfish fillets - 8 lbs","Cornmeal - 1 lb","Eggs - 8","Onion, thinly sliced - 1 lb","Butter - 1 lb","Lemon juice - 0.5 cup","Black pepper - to taste"],instructions:["Dip catfish in egg","Coat with cornmeal","Layer in baking dishes with onions","Dot with butter","Bake at 375°F for 20-25 minutes"],notes:"Mild, flaky fish"},{name:"Osso Buco",description:"Braised veal shanks in tomato wine sauce",ingredients:["Veal shanks - 10 lbs","Low-sodium beef broth - 4 gallons","Diced tomatoes - 2 lbs","Carrots, chunked - 2 lbs","Celery, chunked - 1.5 lbs","Onion, diced - 1.5 lbs","White wine - 2 cups","Garlic - 0.5 lb"],instructions:["Brown veal","Add vegetables and broth","Simmer 2-3 hours until tender","Meat should fall from bone","Serve with soft vegetables"],notes:"Very tender, falling apart"},{name:"Chicken with 40 Cloves of Garlic",description:"Roasted chicken with mild, sweet garlic",ingredients:["Whole chicken - 5 lbs (or parts)","Garlic cloves - 40","Olive oil - 1 cup","Thyme - 0.5 cup","Rosemary - 0.5 cup","Lemon - 2 whole"],instructions:["Place chicken in roasting pan","Add garlic cloves","Drizzle with olive oil","Season with herbs","Roast at 375°F for 1 hour","Garlic becomes sweet and soft"],notes:"Garlic should be spreadable on bread"},{name:"Shrimp Creole",description:"Gulf shrimp in spiced tomato sauce",ingredients:["Shrimp, large - 8 lbs","Onion, diced - 2 lbs","Bell peppers, diced - 2 lbs","Celery, diced - 1 lb","Diced tomatoes - 3 lbs","Tomato sauce - 1 quart","Cayenne pepper - 0.5 teaspoon","Thyme - 1 tablespoon"],instructions:["Sauté vegetables","Add tomatoes and sauce","Simmer 20 minutes","Add shrimp","Cook 5-7 minutes until pink"],notes:"Low heat for proper spice"},{name:"Beef Bourguignon",description:"Braised beef with wine and vegetables",ingredients:["Beef chuck, cubed - 10 lbs","Low-sodium beef broth - 4 gallons","Red wine - 2 cups","Pearl onions - 2 lbs","Mushrooms, whole small - 2 lbs","Carrots, chunked - 2 lbs","Tomato paste - 0.5 cup","Bay leaves - 3"],instructions:["Brown beef","Add broth and wine","Simmer 2-3 hours","Add vegetables after 1.5 hours","Cook until very tender"],notes:"French classic, very tender beef"},{name:"Sautéed Sole",description:"Delicate sole in brown butter with almonds",ingredients:["Sole fillets - 8 lbs","Butter - 1.5 lbs","Sliced almonds - 1 lb","Lemon juice - 1 cup","Fresh parsley - 1 cup","Capers - 0.5 cup"],instructions:["Heat butter until nutty brown color","Cook sole 3-4 minutes per side","Plate sole","Top with browned butter","Garnish with almonds and parsley"],notes:"Very delicate, don't overcook"},{name:"Chicken Fricassee",description:"Creamy chicken stew with vegetables",ingredients:["Chicken, cubed - 8 lbs","Carrots, chunked - 2 lbs","Celery, chunked - 1 lb","Pearl onions - 1.5 lbs","Mushrooms, halved - 1 lb","Low-sodium chicken broth - 3 gallons","Heavy cream - 1 quart","Thyme - 0.5 cup"],instructions:["Simmer chicken in broth","Add vegetables","Simmer 45 minutes","Add cream","Cook 10 minutes more"],notes:"Comfort food classic"},{name:"Herb-Roasted Turkey Breast",description:"Roasted turkey breast with sage and thyme",ingredients:["Turkey breast - 8 lbs","Olive oil - 1 cup","Sage - 0.5 cup","Thyme - 0.5 cup","Rosemary - 0.5 cup","Garlic, minced - 0.5 lb","Low-sodium chicken broth - 1 cup"],instructions:["Rub turkey with herb mixture","Roast at 375°F for 1 hour 15 minutes","Tent with foil if browning too quickly","Rest 10 minutes","Slice and serve with pan drippings"],notes:"Lean protein option"},{name:"Lobster Thermidor",description:"Lobster meat in rich cream sauce with cheese",ingredients:["Lobster meat - 6 lbs","Butter - 1 lb","Mushrooms, diced - 1 lb","Shallots, minced - 0.5 lb","Heavy cream - 2 quarts","Gruyere cheese - 1 lb","Brandy - 0.5 cup","Paprika - 1 tablespoon"],instructions:["Heat butter and sauté mushrooms","Add lobster","Flame with brandy","Add cream and cheese","Simmer gently","Serve over soft toast or rice"],notes:"Luxurious preparation"},{name:"Chicken Tetrazzini",description:"Creamy chicken and pasta with vegetables",ingredients:["Cooked chicken, diced - 5 lbs","Egg noodles - 4 lbs","Mushrooms, sliced - 2 lbs","Onion, diced - 1 lb","Heavy cream - 2 quarts","Chicken broth - 1 cup","Parmesan cheese - 1 lb","Butter - 0.5 lb"],instructions:["Cook noodles until soft","Sauté mushrooms","Mix cream and broth","Combine all in casserole","Sprinkle with cheese","Bake at 350°F for 30 minutes"],notes:"Rich casserole style"},{name:"Seared Scallops",description:"Tender scallops in lemon butter sauce",ingredients:["Sea scallops - 8 lbs","Butter - 1 lb","Lemon juice - 1 cup","Garlic, minced - 0.5 lb","Fresh parsley - 1 cup","White wine - 1 cup"],instructions:["Pat scallops dry","Heat butter in pan","Cook scallops 2-3 minutes per side","Remove","Add wine and lemon to pan","Plate scallops and drizzle sauce"],notes:"Don't overcook - they toughen quickly"},{name:"Baked Salmon Patties",description:"Salmon cakes with soft texture",ingredients:["Canned salmon - 6 lbs","Breadcrumbs - 1.5 lbs","Eggs - 12","Onion, minced - 0.5 lb","Celery, minced - 0.5 lb","Butter - 1 lb","Lemon juice - 0.5 cup"],instructions:["Mix salmon, breadcrumbs, eggs, vegetables","Form into cakes","Bake at 375°F for 20 minutes","Top with lemon butter"],notes:"Good use of canned salmon"},{name:"Spinach and Cheese Manicotti",description:"Pasta tubes filled with ricotta and spinach",ingredients:["Manicotti pasta - 3 lbs","Ricotta cheese - 3 lbs","Spinach, chopped - 2 lbs","Mozzarella cheese - 2 lbs","Parmesan cheese - 1 lb","Marinara sauce - 3 gallons","Eggs - 6"],instructions:["Cook pasta until soft","Mix ricotta, spinach, eggs, cheese","Fill manicotti tubes","Layer with sauce","Bake at 350°F for 40 minutes"],notes:"Can be prepared ahead"},{name:"Herb-Baked Chicken with Root Vegetables",description:"Roasted chicken with soft root vegetables",ingredients:["Chicken parts - 10 lbs","Carrots, chunked - 3 lbs","Potatoes, chunked - 3 lbs","Onions, quartered - 2 lbs","Rosemary - 0.5 cup","Thyme - 0.5 cup","Olive oil - 1 cup","Low-sodium chicken broth - 1 cup"],instructions:["Place vegetables in baking pan","Arrange chicken on top","Season with herbs","Drizzle with oil and broth","Roast at 375°F for 1 hour"],notes:"All-in-one meal"},{name:"Crab Cakes",description:"Tender crab cakes with minimal filling",ingredients:["Crab meat - 6 lbs","Breadcrumbs - 1 lb","Eggs - 8","Mayonnaise - 0.5 cup","Green onions, chopped - 0.5 lb","Lemon juice - 0.5 cup","Old Bay seasoning - 1 tablespoon"],instructions:["Mix all ingredients gently","Form into cakes","Bake at 375°F for 20 minutes","Serve with lemon wedge"],notes:"Don't overwork mixture"},{name:"Braised Chicken in Red Wine",description:"Chicken in wine sauce with mushrooms",ingredients:["Chicken parts - 10 lbs","Red wine - 2 cups","Low-sodium chicken broth - 2 cups","Mushrooms, whole - 2 lbs","Pearl onions - 1.5 lbs","Carrots, chunked - 2 lbs","Thyme - 0.5 cup","Bay leaves - 2"],instructions:["Brown chicken","Add wine and broth","Add vegetables and herbs","Simmer 1 hour until tender","Adjust seasoning"],notes:"Rich, developed flavors"},{name:"Baked Grouper with Tomato",description:"White fish with fresh tomato topping",ingredients:["Grouper fillets - 8 lbs","Fresh tomatoes, diced - 2 lbs","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup","Fresh basil - 1 cup","Lemon juice - 0.5 cup"],instructions:["Arrange grouper in baking pan","Top with tomato mixture","Drizzle with olive oil","Bake at 375°F for 18-20 minutes","Garnish with basil"],notes:"Light Mediterranean style"},{name:"Chicken and Rice Casserole",description:"Creamy chicken with rice and vegetables",ingredients:["Cooked chicken, diced - 5 lbs","White rice, cooked - 4 lbs","Peas, frozen - 2 lbs","Carrots, diced - 1.5 lbs","Low-sodium chicken broth - 2 cups","Heavy cream - 1 quart","Onion, diced - 1 lb"],instructions:["Mix all ingredients","Transfer to casserole dishes","Bake at 350°F for 30 minutes","Cover if browning too quickly"],notes:"One-dish meal"},{name:"Veal Parmesan",description:"Breaded veal with marinara and cheese",ingredients:["Veal cutlets - 8 lbs","Breadcrumbs - 1.5 lbs","Eggs - 10","Marinara sauce - 2 gallons","Mozzarella cheese - 2 lbs","Parmesan cheese - 1 lb","Olive oil - 1 cup"],instructions:["Pound veal thin","Coat with breadcrumbs","Fry until golden","Top with sauce and cheese","Bake at 375°F for 20 minutes"],notes:"Tender cut, cook gently"},{name:"Seafood Paella",description:"Spanish rice with shrimp, mussels, and vegetables",ingredients:["Shrimp, large - 4 lbs","Mussels - 3 lbs","Rice - 3 lbs","Onion, diced - 1.5 lbs","Bell peppers, diced - 1 lb","Peas, frozen - 1 lb","Low-sodium fish broth - 4 cups","Saffron threads - 1 teaspoon","Garlic - 0.5 lb"],instructions:["Heat broth with saffron","Cook rice","Add vegetables","Add seafood","Cook until cooked through"],notes:"Traditional Spanish dish"},{name:"Chicken Mozzarella",description:"Chicken breast with mozzarella and tomato",ingredients:["Chicken breasts - 8 lbs","Mozzarella cheese slices - 2 lbs","Tomatoes, sliced - 2 lbs","Fresh basil - 1 cup","Olive oil - 0.5 cup","Balsamic vinegar - 0.5 cup","Garlic, minced - 0.5 lb"],instructions:["Roast chicken","Top with tomato and cheese","Return to oven until cheese melts","Drizzle with balsamic","Garnish with basil"],notes:"Italian inspired"},{name:"Baked Snapper with Herbs",description:"Red snapper with Mediterranean herbs",ingredients:["Snapper fillets - 8 lbs","Olive oil - 0.5 cup","Oregano - 0.5 cup","Thyme - 0.5 cup","Lemon juice - 1 cup","Garlic, minced - 0.5 lb","Black pepper - to taste"],instructions:["Arrange snapper in pan","Mix herbs with oil and lemon","Pour over snapper","Bake at 375°F for 18-20 minutes"],notes:"Mild, sweet flavor"},{name:"Chicken Liver Pâté",description:"Smooth, buttery chicken liver spread",ingredients:["Chicken livers - 4 lbs","Butter - 2 lbs","Onion, diced - 1 lb","Garlic - 0.5 lb","Cognac - 0.5 cup","Heavy cream - 0.5 cup","Thyme - 0.5 cup"],instructions:["Sauté livers with onion","Flame with cognac","Blend until smooth","Mix with butter and cream","Mold into shape","Chill before serving"],notes:"Very rich, small portions"},{name:"Poached Salmon",description:"Gently poached salmon in herb broth",ingredients:["Salmon fillets - 8 lbs","Low-sodium fish broth - 2 gallons","Lemon - 3 whole","Onion, sliced - 1 lb","Fresh dill - 1 cup","Fresh parsley - 1 cup","Black pepper - to taste"],instructions:["Heat broth to gentle simmer","Add lemon and onion","Add herbs","Gently place salmon in broth","Poach 12-15 minutes","Remove and serve with broth"],notes:"Very gentle cooking"},{name:"Beef Rigatoni",description:"Ground beef with pasta in tomato sauce",ingredients:["Ground beef - 8 lbs","Rigatoni pasta - 4 lbs","Onion, diced - 2 lbs","Garlic, minced - 0.5 lb","Marinara sauce - 3 gallons","Parmesan cheese - 1 lb","Italian herbs - 2 tablespoons"],instructions:["Brown ground beef","Sauté onion and garlic","Add marinara sauce","Simmer 20 minutes","Toss with cooked pasta","Top with cheese"],notes:"Family-style favorite"},{name:"Shrimp and Grits",description:"Southern-style shrimp over creamy grits",ingredients:["Shrimp, large - 8 lbs","Grits - 2 lbs","Chicken broth - 4 cups","Heavy cream - 2 cups","Butter - 1 lb","Bacon, diced - 1 lb","Onion, diced - 1 lb","Garlic, minced - 0.5 lb"],instructions:["Cook grits until creamy","Stir in butter and cream","Render bacon","Sauté shrimp with onion and garlic","Serve shrimp over grits"],notes:"Comfort food classic"},{name:"Herb-Crusted Lamb Chops",description:"Tender lamb chops with herb crust",ingredients:["Lamb chops - 8 lbs","Breadcrumbs - 1.5 lbs","Eggs - 8","Rosemary - 0.5 cup","Thyme - 0.5 cup","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup"],instructions:["Mix breadcrumbs with herbs","Dip chops in egg","Coat with herb mixture","Bake at 375°F for 20-25 minutes","Rest before serving"],notes:"Ensure cooked through"},{name:"Mussels in White Wine",description:"Tender mussels in garlic and wine broth",ingredients:["Mussels - 8 lbs","White wine - 2 cups","Butter - 1 lb","Garlic, minced - 1 lb","Onion, diced - 1 lb","Fresh parsley - 1 cup","Crusty bread - 2 lbs"],instructions:["Heat butter and garlic","Add onion","Add wine and bring to boil","Add mussels","Cover and steam 5-7 minutes","Serve with broth and bread"],notes:"Discard any unopened mussels"},{name:"Braised Rabbit",description:"Tender rabbit in wine sauce",ingredients:["Rabbit, parts - 8 lbs","Red wine - 2 cups","Low-sodium chicken broth - 2 cups","Mushrooms, whole - 2 lbs","Pearl onions - 1.5 lbs","Carrots, chunked - 2 lbs","Rosemary - 0.5 cup","Bay leaves - 2"],instructions:["Brown rabbit parts","Add wine and broth","Add vegetables and herbs","Simmer 1.5-2 hours","Meat should be very tender"],notes:"Delicate game meat"},{name:"Tilapia Piccata",description:"Tilapia with lemon and capers",ingredients:["Tilapia fillets - 8 lbs","Flour - 1 lb","Lemon juice - 1 cup","Capers - 1 cup","Butter - 1 lb","Olive oil - 0.5 cup","Chicken broth - 1 cup"],instructions:["Lightly coat with flour","Sauté until golden","Add lemon and capers","Simmer gently","Serve immediately"],notes:"Light and flavorful"},{name:"Chicken and Mushroom Stew",description:"Hearty stew with chicken and vegetables",ingredients:["Chicken, cubed - 8 lbs","Mushrooms, halved - 2 lbs","Carrots, chunked - 2 lbs","Potatoes, chunked - 3 lbs","Pearl onions - 1.5 lbs","Low-sodium chicken broth - 4 gallons","Bay leaves - 3","Thyme - 0.5 cup"],instructions:["Simmer chicken in broth","Add vegetables and herbs","Cook 1 hour","Vegetables should be very tender"],notes:"One-pot meal"},{name:"Baked Bass with Lemon",description:"White bass with light lemon butter",ingredients:["Sea bass fillets - 8 lbs","Butter - 1 lb","Lemon juice - 1 cup","Fresh dill - 0.5 cup","Garlic - 0.5 lb","Black pepper - to taste"],instructions:["Arrange bass on parchment","Top with butter and lemon","Season with dill and garlic","Bake at 375°F for 18-20 minutes"],notes:"Delicate white fish"},{name:"Braised Short Ribs",description:"Fall-apart tender beef ribs",ingredients:["Beef short ribs - 12 lbs","Low-sodium beef broth - 4 gallons","Root vegetables - 4 lbs mixed","Tomato paste - 0.5 cup","Red wine - 2 cups","Bay leaves - 3"],instructions:["Brown ribs","Add broth and wine","Simmer 3-4 hours","Meat falls from bone","Serve with soft vegetables"],notes:"Very tender, may need supervision"},{name:"Chicken Almondine",description:"Chicken with almond butter sauce",ingredients:["Chicken breasts - 8 lbs","Butter - 1.5 lbs","Sliced almonds - 1.5 lbs","Lemon juice - 1 cup","Chicken broth - 1 cup"],instructions:["Sauté chicken until golden","Make beurre noisette with almonds","Add lemon and broth","Plate chicken","Drizzle with sauce"],notes:"Rich, nutty sauce"},{name:"Crab Boil",description:"Steamed crabs with seasoning",ingredients:["Live crabs - 12 lbs","Water - 6 gallons","Old Bay seasoning - 1 cup","Corn - 12 ears","Potatoes - 4 lbs","Onions - 3 whole"],instructions:["Fill pot with water","Add Old Bay and vegetables","Bring to boil","Add crabs","Steam 20-25 minutes","Serve with butter"],notes:"Requires detailed instructions for eating"},{name:"Veal Marsala",description:"Tender veal in wine sauce",ingredients:["Veal scaloppine - 8 lbs","Marsala wine - 2 cups","Mushrooms, sliced - 2 lbs","Butter - 1 lb","Shallots, minced - 0.5 lb","Fresh parsley - 1 cup"],instructions:["Sauté veal","Set aside","Sauté mushrooms","Add wine and butter","Return veal","Simmer gently 5 minutes"],notes:"Pound veal very thin"},{name:"Halibut Veracruz",description:"Halibut with tomatoes, olives, capers",ingredients:["Halibut fillets - 8 lbs","Diced tomatoes - 2 lbs","Green olives - 1 lb","Capers - 0.5 cup","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup"],instructions:["Make sauce with vegetables","Place halibut in baking pan","Pour sauce over","Bake at 375°F for 20-25 minutes"],notes:"Mexican-inspired preparation"},{name:"Chicken with Olives",description:"Mediterranean chicken with green olives",ingredients:["Chicken parts - 10 lbs","Green olives - 2 lbs","Lemon juice - 1 cup","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup","Preserved lemons - 0.5 cup"],instructions:["Sauté chicken","Add olives and seasonings","Simmer 45 minutes","Add preserved lemons","Cook 15 minutes more"],notes:"Rich, briny flavors"},{name:"Trout Almondine",description:"Trout with almond brown butter",ingredients:["Trout fillets - 8 lbs","Butter - 1.5 lbs","Almonds, sliced - 1.5 lbs","Lemon juice - 0.5 cup","Fresh parsley - 1 cup"],instructions:["Cook trout gently","Make brown butter with almonds","Plate trout","Drizzle with almond butter","Garnish with parsley"],notes:"Elegant preparation"},{name:"Beef Medallions",description:"Tender beef tenderloin medallions",ingredients:["Beef tenderloin - 8 lbs","Butter - 1 lb","Shallots, minced - 0.5 lb","Red wine - 1 cup","Beef broth - 1 cup","Fresh thyme - 0.5 cup"],instructions:["Sear medallions","Remove","Make pan sauce","Reduce wine and broth","Plate medallions","Drizzle with sauce"],notes:"Premium cut, don't overcook"},{name:"Lobster Newburg",description:"Lobster in rich cream sauce",ingredients:["Lobster meat - 6 lbs","Butter - 1 lb","Sherry wine - 1 cup","Heavy cream - 2 quarts","Egg yolks - 8","Paprika - 1 tablespoon"],instructions:["Heat butter","Add lobster","Flame with sherry","Add cream","Temper egg yolks","Combine carefully","Serve over soft toast"],notes:"Very rich preparation"}
+
+            soups: [
+                {
+                    name: "Chicken Noodle Soup",
+                    description: "Light and comforting classic with soft noodles",
+                    ingredients: [
+                        "Low-sodium chicken broth - 4 gallons",
+                        "Diced chicken breast - 5 lbs",
+                        "Carrots, diced - 2 lbs",
+                        "Celery, diced - 2 lbs",
+                        "Onion, diced - 1 lb",
+                        "Egg noodles - 3 lbs",
+                        "Parsley or mixed herbs - 1 cup",
+                        "Black pepper - to taste"
+                    ],
+                    notes: "Chop vegetables small for easier chewing. Low-sodium broth suitable for seniors with dietary restrictions."
+                },
+                {name:"Tomato Basil Soup",description:"Smooth, velvety tomato soup with fresh basil notes",ingredients:["Low-sodium tomato puree - 3 gallons","Vegetable broth - 1 gallon","Onion, diced - 1.5 lbs","Garlic, minced - 0.5 lb","Olive oil - 2 cups","Fresh basil - 1 cup","Black pepper - to taste","Heavy cream (optional) - 1 quart"],notes:"Can add cream for richer texture. Basil adds nutritional value. Blend if smoother texture desired."},{name:"Lentil Soup",description:"Hearty, protein-rich soup with vegetables",ingredients:["Dried lentils - 4 lbs","Low-sodium vegetable broth - 5 gallons","Onion, diced - 1.5 lbs","Carrot, diced - 2 lbs","Celery, diced - 1.5 lbs","Garlic, minced - 0.5 lb","Cumin - 2 tablespoons","Turmeric - 1 tablespoon","Black pepper - to taste"],notes:"Excellent source of fiber and protein. Cook lentils until very soft."},{name:"Butternut Squash Soup",description:"Smooth, creamy soup with warm spices",ingredients:["Butternut squash, cubed - 8 lbs","Onion, diced - 1.5 lbs","Garlic, minced - 0.5 lb","Low-sodium vegetable broth - 4 gallons","Olive oil - 1 cup","Cinnamon - 1 tablespoon","Nutmeg - 0.5 tablespoon","Black pepper - to taste"],notes:"Blend until smooth for best texture. Can add milk or coconut milk for creaminess."},{name:"Chicken and Rice Soup",description:"Warm comfort soup with tender chicken and rice",ingredients:["Low-sodium chicken broth - 4 gallons","Cooked chicken, diced - 4 lbs","Cooked white rice - 3 lbs","Carrot, diced - 2 lbs","Celery, diced - 1.5 lbs","Onion, diced - 1 lb","Fresh parsley - 1 cup","Black pepper - to taste"],notes:"Rice should be soft; cook longer if needed. Good for residents with swallowing difficulties."},{name:"Split Pea Soup",description:"Classic creamy pea soup with a hint of ham",ingredients:["Dried split peas - 4 lbs","Low-sodium chicken/vegetable broth - 5 gallons","Onion, diced - 1.5 lbs","Carrot, diced - 2 lbs","Celery, diced - 1.5 lbs","Potatoes, diced - 2 lbs","Garlic, minced - 0.5 lb","Diced ham (optional) - 2 lbs","Black pepper - to taste"],notes:"Cook until peas are very soft. Can be blended for smoother texture."},{name:"Potato Leek Soup",description:"Mild, creamy soup with leeks and tender potatoes",ingredients:["Potatoes, diced - 5 lbs","Leeks, sliced (white part) - 3 lbs","Onion, diced - 1 lb","Low-sodium chicken/vegetable broth - 4 gallons","Olive oil or butter - 1 cup","Black pepper - to taste","Fresh thyme - 0.5 cup"],notes:"Blend halfway for creamier texture without adding cream. Good for residents with limited sodium needs."},{name:"Vegetable Minestrone",description:"Hearty Italian-style vegetable soup with pasta",ingredients:["Low-sodium vegetable broth - 4 gallons","Diced tomatoes - 3 lbs","Zucchini, diced - 2 lbs","Green beans, cut - 2 lbs","Carrots, diced - 2 lbs","Onion, diced - 1.5 lbs","Celery, diced - 1 lb","Spinach, chopped - 1 lb","Small pasta (ditalini) - 1.5 lbs","Italian herbs - 2 tablespoons"],notes:"Add pasta near end of cooking. Excellent for nutrition and variety."},{name:"French Onion Soup",description:"Rich, caramelized onions in beef broth with soft bread",ingredients:["Low-sodium beef broth - 4 gallons","Onions, sliced thin - 6 lbs","Butter - 1 lb","Garlic, minced - 0.5 lb","Thyme - 0.5 cup","Bay leaves - 3","Soft bread cubes - 1 lb","Gruyere cheese - 1 lb","Black pepper - to taste"],notes:"Bread should be soft."},{name:"Cream of Mushroom Soup",description:"Earthy mushroom soup with cream and herbs",ingredients:["Mushrooms, sliced - 5 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1.5 lbs","Garlic, minced - 0.5 lb","Heavy cream - 1 quart","Butter - 0.5 lb","Fresh thyme - 0.5 cup","Black pepper - to taste"],notes:"Can blend for smoother texture."},{name:"Asparagus and Potato Soup",description:"Silky asparagus with tender potatoes",ingredients:["Fresh asparagus - 4 lbs","Potatoes, diced - 3 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Heavy cream (optional) - 1 pint","Butter - 0.5 lb","Black pepper - to taste"],notes:"Asparagus should be very soft."},{name:"Broccoli Cheddar Soup",description:"Creamy broccoli with sharp cheddar cheese",ingredients:["Fresh broccoli - 5 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1.5 lbs","Cheddar cheese, shredded - 2 lbs","Heavy cream - 1 quart","Butter - 0.5 lb","Black pepper - to taste","Nutmeg - 0.5 teaspoon"],notes:"Chop broccoli small."},{name:"Sweet Corn Chowder",description:"Sweet corn with potatoes and peppers",ingredients:["Corn kernels (fresh or frozen) - 6 lbs","Potatoes, diced - 3 lbs","Bell peppers, diced - 2 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1.5 lbs","Heavy cream - 1 quart","Butter - 0.5 lb","Black pepper - to taste"],notes:"Blend partially for thicker texture."},{name:"Bean and Barley Soup",description:"Hearty combination of beans, barley, and vegetables",ingredients:["Dried beans (mixed) - 3 lbs","Barley - 2 lbs","Low-sodium vegetable broth - 5 gallons","Carrots, diced - 2 lbs","Celery, diced - 1.5 lbs","Onion, diced - 1.5 lbs","Diced tomatoes - 1 lb","Thyme - 1 tablespoon"],notes:"Very hearty and filling."},{name:"Turkey Noodle Soup",description:"Light broth with ground turkey and soft noodles",ingredients:["Ground turkey - 4 lbs","Low-sodium chicken broth - 4 gallons","Egg noodles - 2 lbs","Carrots, diced - 2 lbs","Celery, diced - 1.5 lbs","Onion, diced - 1 lb","Fresh parsley - 1 cup","Black pepper - to taste"],notes:"Similar to chicken but lighter."},{name:"Roasted Red Pepper Soup",description:"Smooth soup with sweet roasted peppers",ingredients:["Red bell peppers, roasted - 5 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1.5 lbs","Garlic, minced - 0.5 lb","Heavy cream - 1 pint","Olive oil - 0.5 cup","Black pepper - to taste","Basil - 0.5 cup"],notes:"Blend until completely smooth."},{name:"Spinach and Ricotta Soup",description:"Creamy spinach with Italian herbs and cheese",ingredients:["Fresh spinach - 5 lbs","Ricotta cheese - 2 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Parmesan cheese - 1 lb","Black pepper - to taste","Nutmeg - 0.5 teaspoon"],notes:"Very nutritious option."},{name:"Carrot Ginger Soup",description:"Sweet carrots with warm ginger spice",ingredients:["Carrots, sliced - 5 lbs","Fresh ginger, minced - 0.5 lb","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1.5 lbs","Coconut milk - 1 quart","Butter - 0.5 lb","Black pepper - to taste","Turmeric - 1 tablespoon"],notes:"Warm and soothing."},{name:"Celery Root and Potato Soup",description:"Creamy soup with earthy celery root",ingredients:["Celery root, cubed - 4 lbs","Potatoes, diced - 3 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1.5 lbs","Heavy cream - 1 quart","Butter - 0.5 lb","Fresh thyme - 0.5 cup","Black pepper - to taste"],notes:"Earthy, sophisticated flavor."},{name:"Beef and Barley Soup",description:"Hearty soup with tender beef and barley",ingredients:["Beef chuck, cubed - 4 lbs","Barley - 2 lbs","Low-sodium beef broth - 5 gallons","Carrots, diced - 2 lbs","Celery, diced - 1.5 lbs","Onion, diced - 1.5 lbs","Bay leaves - 2","Black pepper - to taste"],notes:"Very hearty, filling soup."},{name:"Parsnip and Apple Soup",description:"Sweet soup with parsnips and apples",ingredients:["Parsnips, diced - 4 lbs","Apples, peeled and diced - 2 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1 lb","Heavy cream - 1 pint","Butter - 0.5 lb","Cinnamon - 1 teaspoon","Black pepper - to taste"],notes:"Sweet and savory balance."},{name:"Beet and Beet Green Soup",description:"Earthy beets with nutritious greens",ingredients:["Beets, diced - 4 lbs","Beet greens, chopped - 2 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Heavy cream (optional) - 1 pint","Butter - 0.5 lb","Black pepper - to taste"],notes:"Vibrant color and nutrients."},{name:"White Bean and Kale Soup",description:"Nutritious white beans with tender kale",ingredients:["Canned white beans - 5 lbs","Kale, chopped - 3 lbs","Low-sodium vegetable broth - 4 gallons","Carrots, diced - 1.5 lbs","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup","Black pepper - to taste"],notes:"Very nutritious option."},{name:"Cauliflower and Cheese Soup",description:"Creamy cauliflower with aged cheddar",ingredients:["Cauliflower florets - 5 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1.5 lbs","Sharp cheddar cheese - 2 lbs","Heavy cream - 1 quart","Butter - 0.5 lb","Black pepper - to taste","Nutmeg - 0.5 teaspoon"],notes:"Rich and comforting."},{name:"Zucchini and Herb Soup",description:"Light summer soup with fresh zucchini",ingredients:["Zucchini, diced - 5 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Fresh basil - 1 cup","Fresh oregano - 0.5 cup","Heavy cream (optional) - 1 pint","Black pepper - to taste"],notes:"Light and fresh flavor."},{name:"Pumpkin Soup",description:"Seasonal pumpkin soup with warm spices",ingredients:["Pumpkin puree - 5 lbs","Low-sodium vegetable broth - 4 gallons","Onion, diced - 1.5 lbs","Garlic, minced - 0.5 lb","Heavy cream - 1 quart","Cinnamon - 1 tablespoon","Nutmeg - 1 tablespoon","Black pepper - to taste"],notes:"Seasonal special."},{name:"Clam Chowder",description:"New England-style clam chowder",ingredients:["Canned clams - 3 lbs","Potatoes, diced small - 4 lbs","Onion, diced - 1.5 lbs","Celery, diced - 1 lb","Clam juice - 3 gallons","Heavy cream - 2 quarts","Butter - 1 lb","Black pepper - to taste"],notes:"Rich and savory."}
+                {
+                    name: "Herb Roasted Chicken Breast",
+                    description: "Moist, tender chicken with Italian herbs and garlic",
+                    ingredients: [
+                        "Chicken breasts - 10 lbs",
+                        "Olive oil - 1 cup",
+                        "Garlic, minced - 0.5 lb",
+                        "Fresh rosemary - 0.5 cup",
+                        "Fresh thyme - 0.5 cup",
+                        "Low-sodium chicken broth - 2 cups",
+                        "Black pepper - to taste",
+                        "Lemon zest - 0.5 cup"
+                    ],
+                    instructions: [
+                        "Preheat oven to 375°F",
+                        "Coat chicken with olive oil and herbs",
+                        "Place on baking sheets with small amount of broth",
+                        "Roast for 25-30 minutes until internal temp is 165°F",
+                        "Let rest 5 minutes, then slice or dice as needed",
+                        "Portion and plate with pan juices"
+                    ],
+                    notes: "Ensure chicken is cooked to safe temperature. Can be shredded for easier eating."
+                },
+                {
+                    name: "Ground Turkey Meatloaf",
+                    description: "Lean, flavorful meatloaf with breadcrumbs and vegetables",
+                    ingredients: [
+                        "Ground turkey - 8 lbs",
+                        "Breadcrumbs - 1 lb",
+                        "Eggs - 12",
+                        "Onion, finely diced - 1 lb",
+                        "Carrots, finely grated - 1 lb",
+                        "Low-sodium beef broth - 2 cups",
+                        "Ketchup (low-sodium) - 1 cup",
+                        "Black pepper - to taste"
+                    ],
+                    instructions: [
+                        "Preheat oven to 350°F",
+                        "Mix turkey, breadcrumbs, eggs, vegetables in large bowl",
+                        "Form into loaf pans or sheet pans",
+                        "Bake for 50-60 minutes until internal temp reaches 165°F",
+                        "Cool slightly, then slice into portions",
+                        "Serve with pan drippings or low-sodium gravy"
+                    ],
+                    notes: "Leaner option than beef. Vegetables make it moist and nutritious."
+                },
+                {
+                    name: "Beef Stew with Tender Vegetables",
+                    description: "Slow-cooked beef with soft vegetables in rich broth",
+                    ingredients: [
+                        "Beef chuck, cubed - 8 lbs",
+                        "Potatoes, cubed - 5 lbs",
+                        "Carrots, cut into chunks - 3 lbs",
+                        "Celery, cut into chunks - 1.5 lbs",
+                        "Onion, diced - 1.5 lbs",
+                        "Low-sodium beef broth - 6 gallons",
+                        "Tomato paste - 0.5 cup",
+                        "Bay leaves - 3",
+                        "Thyme - 1 tablespoon",
+                        "Black pepper - to taste"
+                    ],
+                    instructions: [
+                        "Brown beef in large batches at 350°F",
+                        "Add vegetables and broth to large pots",
+                        "Add tomato paste and seasonings",
+                        "Simmer or braise for 2-3 hours until very tender",
+                        "Cool and skim any excess fat",
+                        "Portion into meal trays"
+                    ],
+                    notes: "Vegetables should be very soft. Cut into manageable pieces."
+                },
+                {
+                    name: "Baked Cod with Herbs",
+                    description: "Light, flaky white fish with tender herbs",
+                    ingredients: [
+                        "Cod fillets - 8 lbs",
+                        "Olive oil - 1 cup",
+                        "Garlic, minced - 0.5 lb",
+                        "Fresh parsley - 1 cup",
+                        "Fresh tarragon - 0.5 cup",
+                        "Lemon juice - 1 cup",
+                        "Black pepper - to taste",
+                        "Low-fat milk or broth - 1 cup (optional)"
+                    ],
+                    instructions: [
+                        "Preheat oven to 375°F",
+                        "Place cod on parchment paper",
+                        "Drizzle with olive oil and lemon juice",
+                        "Season with herbs and garlic",
+                        "Bake for 12-15 minutes until flakes easily",
+                        "Serve with vegetables and soft sides"
+                    ],
+                    notes: "Mild flavor good for sensitive palates. Very soft texture."
+                },
+                {
+                    name: "Turkey and Dressing Casserole",
+                    description: "Comforting casserole with turkey and sage dressing",
+                    ingredients: [
+                        "Ground turkey - 8 lbs",
+                        "Bread cubes (soft) - 2 lbs",
+                        "Celery, diced - 1.5 lbs",
+                        "Onion, diced - 1.5 lbs",
+                        "Low-sodium chicken broth - 4 cups",
+                        "Eggs - 8",
+                        "Fresh sage - 0.5 cup",
+                        "Butter - 0.5 lb",
+                        "Black pepper - to taste"
+                    ],
+                    instructions: [
+                        "Preheat oven to 350°F",
+                        "Cook turkey with onion and celery until done",
+                        "Mix bread, turkey mixture, broth, eggs, sage",
+                        "Place in large casserole dishes",
+                        "Bake for 40-50 minutes until set and lightly browned",
+                        "Cool slightly and portion"
+                    ],
+                    notes: "Use soft bread. Great comfort food for residents."
+                },
+                {
+                    name: "Roasted Pork Tenderloin",
+                    description: "Tender, juicy pork with rosemary and garlic",
+                    ingredients: [
+                        "Pork tenderloin - 8 lbs",
+                        "Olive oil - 1 cup",
+                        "Garlic, minced - 0.5 lb",
+                        "Fresh rosemary - 0.5 cup",
+                        "Thyme - 0.5 cup",
+                        "Low-sodium chicken broth - 2 cups",
+                        "Black pepper - to taste",
+                        "Lemon zest - 0.5 cup"
+                    ],
+                    instructions: [
+                        "Preheat oven to 375°F",
+                        "Score fat and coat with oil and herbs",
+                        "Roast for 30-40 minutes until internal temp is 145°F",
+                        "Let rest 10 minutes",
+                        "Slice into portions",
+                        "Serve with pan drippings"
+                    ],
+                    notes: "Slice into manageable pieces. Tender protein option."
+                }
+            ],
+
+            dailySpecials: [
+                {
+                    name: "Baked Salmon with Lemon",
+                    description: "Tender baked salmon fillet with fresh lemon butter sauce",
+                    ingredients: ["Salmon fillets - 8 lbs","Butter - 1 lb","Fresh lemon juice - 1 cup","Garlic, minced - 0.5 lb","Fresh dill - 1 cup","Low-sodium fish broth (optional) - 2 cups","Black pepper - to taste","Olive oil - 0.5 cup"],
+                    instructions: ["Preheat oven to 375°F","Place salmon on parchment-lined baking sheets","Mix butter, lemon juice, garlic, and dill","Spread mixture over salmon","Bake for 15-18 minutes until flakes easily","Portion into individual servings"],
+                    notes: "Excellent omega-3 source. Serve with soft vegetables."
+                },
+                {name:"Grilled Tilapia with Dill",description:"Mild white fish with fresh dill and lemon",ingredients:["Tilapia fillets - 8 lbs","Olive oil - 1 cup","Lemon juice - 1 cup","Fresh dill - 1 cup","Garlic, minced - 0.5 lb","Black pepper - to taste"],instructions:["Preheat oven to 375°F","Place tilapia on parchment paper","Season with dill, garlic, and lemon","Bake 12-15 minutes until flakes easily","Serve with lemon wedges"],notes:"Mild flavor, very soft texture"},{name:"Braised Lamb Shanks",description:"Tender, fall-apart lamb in rich broth",ingredients:["Lamb shanks - 8 lbs","Low-sodium beef broth - 4 gallons","Carrots, chunked - 2 lbs","Celery, chunked - 1.5 lbs","Onion, diced - 1.5 lbs","Tomato paste - 0.5 cup","Rosemary - 0.5 cup","Bay leaves - 3"],instructions:["Brown lamb in batches","Add vegetables and broth","Simmer 2-3 hours until very tender","Remove meat from bone if needed","Serve with soft vegetables"],notes:"May require supervision for eating"},{name:"Chicken Parmesan",description:"Breaded chicken with marinara and melted cheese",ingredients:["Chicken breasts - 8 lbs","Breadcrumbs (soft) - 2 lbs","Eggs - 12","Marinara sauce - 2 gallons","Mozzarella cheese, shredded - 2 lbs","Parmesan cheese - 1 lb","Olive oil - 1 cup"],instructions:["Pound chicken breasts thin","Dip in egg, then breadcrumbs","Fry until golden","Top with sauce and cheese","Bake at 375°F for 20 minutes"],notes:"Cut into manageable pieces"},{name:"Slow Cooker Pot Roast",description:"Tender beef with vegetables in broth",ingredients:["Beef chuck roast - 10 lbs","Potatoes, chunked - 4 lbs","Carrots, cut thick - 3 lbs","Celery, chunked - 1.5 lbs","Onion, quartered - 2 lbs","Low-sodium beef broth - 3 gallons","Thyme - 1 tablespoon","Bay leaves - 3"],instructions:["Place vegetables in slow cooker","Add beef and broth","Cook on low 6-8 hours","Meat should shred easily","Portion into trays"],notes:"Very tender, easy to chew"},{name:"Turkey Meatballs in Tomato Sauce",description:"Lean meatballs in Italian marinara",ingredients:["Ground turkey - 8 lbs","Breadcrumbs - 1 lb","Eggs - 8","Onion, minced - 1 lb","Parmesan cheese - 0.5 lb","Marinara sauce - 3 gallons","Garlic, minced - 0.5 lb","Italian herbs - 2 tablespoons"],instructions:["Mix turkey, breadcrumbs, eggs, cheese","Form into 1-inch balls","Bake at 375°F for 25 minutes","Add to heated marinara","Simmer 15 minutes"],notes:"Soft, easy to eat with spoon"},{name:"Baked Flounder with Capers",description:"Delicate white fish with briny capers",ingredients:["Flounder fillets - 8 lbs","Butter - 1 lb","Capers - 1 cup","Lemon juice - 1 cup","Garlic, minced - 0.5 lb","Fresh parsley - 1 cup","Black pepper - to taste"],instructions:["Preheat oven to 375°F","Arrange flounder on baking sheets","Top with caper butter","Bake 12-14 minutes","Serve with lemon"],notes:"Very delicate, handle gently"},{name:"Chicken and Dumplings",description:"Comforting chicken in broth with soft dumplings",ingredients:["Cooked chicken, diced - 5 lbs","Low-sodium chicken broth - 5 gallons","Carrots, diced - 2 lbs","Celery, diced - 1.5 lbs","Onion, diced - 1 lb","Biscuit dough - 3 lbs","Fresh thyme - 0.5 cup","Black pepper - to taste"],instructions:["Bring broth to boil","Add vegetables and chicken","Drop dumplings by spoon","Simmer 15-20 minutes","Serve in bowls"],notes:"Warm, comforting classic"},{name:"Herb-Crusted Pork Chops",description:"Tender pork with herb crust",ingredients:["Pork loin chops - 8 lbs","Breadcrumbs - 1.5 lbs","Eggs - 10","Rosemary - 0.5 cup","Thyme - 0.5 cup","Garlic, minced - 0.5 lb","Olive oil - 1 cup","Lemon juice - 0.5 cup"],instructions:["Mix breadcrumbs with herbs","Dip chops in egg","Coat with herb mixture","Bake at 375°F for 20-25 minutes","Rest before serving"],notes:"Ensure cooked through to 145°F"},{name:"Seafood Scampi over Pasta",description:"Shrimp and scallops in garlic butter sauce",ingredients:["Shrimp, peeled - 4 lbs","Scallops - 3 lbs","Butter - 1 lb","Garlic, minced - 1 lb","White wine - 2 cups","Lemon juice - 1 cup","Pasta (soft cooked) - 5 lbs","Fresh parsley - 1 cup"],instructions:["Cook pasta until very soft","Heat butter and garlic","Add shrimp and scallops","Cook 3-4 minutes","Toss with pasta"],notes:"Serve immediately while warm"},{name:"Chicken Creole",description:"Spiced chicken in tomato sauce with vegetables",ingredients:["Chicken breasts, diced - 8 lbs","Onion, diced - 2 lbs","Bell peppers, diced - 2 lbs","Celery, diced - 1.5 lbs","Diced tomatoes - 3 lbs","Chicken broth - 2 cups","Paprika - 1 tablespoon","Cayenne - 0.5 teaspoon"],instructions:["Sauté vegetables","Add chicken and broth","Simmer 30 minutes","Add tomatoes and spices","Cook 15 minutes more"],notes:"Mild spice level"},{name:"Baked Halibut with Asparagus",description:"Tender halibut with fresh asparagus",ingredients:["Halibut fillets - 8 lbs","Fresh asparagus - 3 lbs","Olive oil - 1 cup","Lemon - 3 whole","Garlic, minced - 0.5 lb","Black pepper - to taste"],instructions:["Preheat oven to 375°F","Arrange halibut with asparagus","Drizzle with oil and lemon","Bake 15-18 minutes","Serve with pan juices"],notes:"Light and healthy"},{name:"Beef Stroganoff",description:"Tender beef in creamy mushroom sauce",ingredients:["Beef sirloin, cubed - 8 lbs","Mushrooms, sliced - 3 lbs","Onion, diced - 1.5 lbs","Low-sodium beef broth - 2 cups","Sour cream - 2 quarts","Egg noodles - 4 lbs","Paprika - 1 tablespoon"],instructions:["Brown beef","Sauté mushrooms and onions","Add broth and beef","Simmer 1 hour","Stir in sour cream","Serve over soft noodles"],notes:"Rich and satisfying"},{name:"Chicken Piccata",description:"Tender chicken with lemon and capers",ingredients:["Chicken breasts - 8 lbs","Flour - 1 lb","Lemon juice - 1 cup","Capers - 1 cup","Butter - 1 lb","Olive oil - 0.5 cup","Chicken broth - 1 cup"],instructions:["Pound chicken thin","Coat lightly with flour","Sauté until golden","Add lemon juice and capers","Simmer 5 minutes"],notes:"Tangy, light sauce"},{name:"Glazed Ham",description:"Honey-glazed ham with pineapple",ingredients:["Precooked ham - 10 lbs","Honey - 1 cup","Brown sugar - 1 cup","Mustard - 0.5 cup","Pineapple chunks - 2 lbs","Cloves - 20","Water - 1 cup"],instructions:["Score ham in diamond pattern","Mix honey, sugar, mustard","Brush glaze on ham","Stud with cloves","Bake at 325°F for 2.5 hours","Baste frequently with glaze"],notes:"Special occasion favorite"},{name:"Lemon Herb Chicken Thighs",description:"Juicy chicken thighs with citrus",ingredients:["Chicken thighs - 10 lbs","Lemon juice - 1 cup","Olive oil - 1 cup","Garlic, minced - 0.5 lb","Rosemary - 0.5 cup","Thyme - 0.5 cup","Black pepper - to taste"],instructions:["Marinate chicken 2 hours","Roast at 375°F for 35-40 minutes","Rest 5 minutes","Slice or serve whole"],notes:"Flavorful and moist"},{name:"Seafood Newburg",description:"Shrimp and crab in creamy butter sauce",ingredients:["Shrimp, peeled - 4 lbs","Crab meat - 3 lbs","Butter - 1.5 lbs","Heavy cream - 2 quarts","Sherry wine - 1 cup","Egg yolks - 10","Paprika - 1 tablespoon"],instructions:["Heat butter and cream","Add shrimp and crab","Cook gently 5 minutes","Temper egg yolks with cream","Combine carefully","Serve over soft toast"],notes:"Elegant preparation"},{name:"Chicken Marsala",description:"Tender chicken in wine sauce with mushrooms",ingredients:["Chicken breasts - 8 lbs","Mushrooms, sliced - 3 lbs","Marsala wine - 2 cups","Butter - 1 lb","Garlic, minced - 0.5 lb","Fresh parsley - 1 cup"],instructions:["Pound chicken thin","Sauté until golden","Set aside","Sauté mushrooms","Add wine and butter","Return chicken","Simmer 10 minutes"],notes:"Sophisticated flavor profile"},{name:"Baked Trout with Herbs",description:"Whole baked trout with fresh herb seasoning",ingredients:["Whole trout - 8 lbs","Fresh herbs (dill, parsley) - 1 cup","Butter - 1 lb","Lemon - 4 whole","Garlic - 4 cloves","Black pepper - to taste"],instructions:["Fill trout cavity with herbs and lemon","Top with butter","Wrap in foil","Bake at 375°F for 25-30 minutes","Remove bones before serving"],notes:"Whole fish should be filleted for seniors"},{name:"Turkey Pot Pie",description:"Creamy turkey with vegetables under biscuit crust",ingredients:["Ground turkey - 8 lbs","Carrots, diced - 2 lbs","Celery, diced - 1.5 lbs","Peas, frozen - 2 lbs","Low-sodium chicken broth - 3 cups","Heavy cream - 1 quart","Butter - 1 lb","Biscuit dough - 2 lbs"],instructions:["Cook turkey","Sauté vegetables","Add broth and cream","Transfer to casserole dishes","Top with biscuit dough","Bake at 375°F for 30-35 minutes"],notes:"Warm, comforting meal"},{name:"Baked Catfish",description:"Southern-style baked catfish",ingredients:["Catfish fillets - 8 lbs","Cornmeal - 1 lb","Eggs - 8","Onion, thinly sliced - 1 lb","Butter - 1 lb","Lemon juice - 0.5 cup","Black pepper - to taste"],instructions:["Dip catfish in egg","Coat with cornmeal","Layer in baking dishes with onions","Dot with butter","Bake at 375°F for 20-25 minutes"],notes:"Mild, flaky fish"},{name:"Osso Buco",description:"Braised veal shanks in tomato wine sauce",ingredients:["Veal shanks - 10 lbs","Low-sodium beef broth - 4 gallons","Diced tomatoes - 2 lbs","Carrots, chunked - 2 lbs","Celery, chunked - 1.5 lbs","Onion, diced - 1.5 lbs","White wine - 2 cups","Garlic - 0.5 lb"],instructions:["Brown veal","Add vegetables and broth","Simmer 2-3 hours until tender","Meat should fall from bone","Serve with soft vegetables"],notes:"Very tender, falling apart"},{name:"Chicken with 40 Cloves of Garlic",description:"Roasted chicken with mild, sweet garlic",ingredients:["Whole chicken - 5 lbs (or parts)","Garlic cloves - 40","Olive oil - 1 cup","Thyme - 0.5 cup","Rosemary - 0.5 cup","Lemon - 2 whole"],instructions:["Place chicken in roasting pan","Add garlic cloves","Drizzle with olive oil","Season with herbs","Roast at 375°F for 1 hour","Garlic becomes sweet and soft"],notes:"Garlic should be spreadable on bread"},{name:"Shrimp Creole",description:"Gulf shrimp in spiced tomato sauce",ingredients:["Shrimp, large - 8 lbs","Onion, diced - 2 lbs","Bell peppers, diced - 2 lbs","Celery, diced - 1 lb","Diced tomatoes - 3 lbs","Tomato sauce - 1 quart","Cayenne pepper - 0.5 teaspoon","Thyme - 1 tablespoon"],instructions:["Sauté vegetables","Add tomatoes and sauce","Simmer 20 minutes","Add shrimp","Cook 5-7 minutes until pink"],notes:"Low heat for proper spice"},{name:"Beef Bourguignon",description:"Braised beef with wine and vegetables",ingredients:["Beef chuck, cubed - 10 lbs","Low-sodium beef broth - 4 gallons","Red wine - 2 cups","Pearl onions - 2 lbs","Mushrooms, whole small - 2 lbs","Carrots, chunked - 2 lbs","Tomato paste - 0.5 cup","Bay leaves - 3"],instructions:["Brown beef","Add broth and wine","Simmer 2-3 hours","Add vegetables after 1.5 hours","Cook until very tender"],notes:"French classic, very tender beef"},{name:"Sautéed Sole",description:"Delicate sole in brown butter with almonds",ingredients:["Sole fillets - 8 lbs","Butter - 1.5 lbs","Sliced almonds - 1 lb","Lemon juice - 1 cup","Fresh parsley - 1 cup","Capers - 0.5 cup"],instructions:["Heat butter until nutty brown color","Cook sole 3-4 minutes per side","Plate sole","Top with browned butter","Garnish with almonds and parsley"],notes:"Very delicate, don't overcook"},{name:"Chicken Fricassee",description:"Creamy chicken stew with vegetables",ingredients:["Chicken, cubed - 8 lbs","Carrots, chunked - 2 lbs","Celery, chunked - 1 lb","Pearl onions - 1.5 lbs","Mushrooms, halved - 1 lb","Low-sodium chicken broth - 3 gallons","Heavy cream - 1 quart","Thyme - 0.5 cup"],instructions:["Simmer chicken in broth","Add vegetables","Simmer 45 minutes","Add cream","Cook 10 minutes more"],notes:"Comfort food classic"},{name:"Herb-Roasted Turkey Breast",description:"Roasted turkey breast with sage and thyme",ingredients:["Turkey breast - 8 lbs","Olive oil - 1 cup","Sage - 0.5 cup","Thyme - 0.5 cup","Rosemary - 0.5 cup","Garlic, minced - 0.5 lb","Low-sodium chicken broth - 1 cup"],instructions:["Rub turkey with herb mixture","Roast at 375°F for 1 hour 15 minutes","Tent with foil if browning too quickly","Rest 10 minutes","Slice and serve with pan drippings"],notes:"Lean protein option"},{name:"Lobster Thermidor",description:"Lobster meat in rich cream sauce with cheese",ingredients:["Lobster meat - 6 lbs","Butter - 1 lb","Mushrooms, diced - 1 lb","Shallots, minced - 0.5 lb","Heavy cream - 2 quarts","Gruyere cheese - 1 lb","Brandy - 0.5 cup","Paprika - 1 tablespoon"],instructions:["Heat butter and sauté mushrooms","Add lobster","Flame with brandy","Add cream and cheese","Simmer gently","Serve over soft toast or rice"],notes:"Luxurious preparation"},{name:"Chicken Tetrazzini",description:"Creamy chicken and pasta with vegetables",ingredients:["Cooked chicken, diced - 5 lbs","Egg noodles - 4 lbs","Mushrooms, sliced - 2 lbs","Onion, diced - 1 lb","Heavy cream - 2 quarts","Chicken broth - 1 cup","Parmesan cheese - 1 lb","Butter - 0.5 lb"],instructions:["Cook noodles until soft","Sauté mushrooms","Mix cream and broth","Combine all in casserole","Sprinkle with cheese","Bake at 350°F for 30 minutes"],notes:"Rich casserole style"},{name:"Seared Scallops",description:"Tender scallops in lemon butter sauce",ingredients:["Sea scallops - 8 lbs","Butter - 1 lb","Lemon juice - 1 cup","Garlic, minced - 0.5 lb","Fresh parsley - 1 cup","White wine - 1 cup"],instructions:["Pat scallops dry","Heat butter in pan","Cook scallops 2-3 minutes per side","Remove","Add wine and lemon to pan","Plate scallops and drizzle sauce"],notes:"Don't overcook - they toughen quickly"},{name:"Baked Salmon Patties",description:"Salmon cakes with soft texture",ingredients:["Canned salmon - 6 lbs","Breadcrumbs - 1.5 lbs","Eggs - 12","Onion, minced - 0.5 lb","Celery, minced - 0.5 lb","Butter - 1 lb","Lemon juice - 0.5 cup"],instructions:["Mix salmon, breadcrumbs, eggs, vegetables","Form into cakes","Bake at 375°F for 20 minutes","Top with lemon butter"],notes:"Good use of canned salmon"},{name:"Spinach and Cheese Manicotti",description:"Pasta tubes filled with ricotta and spinach",ingredients:["Manicotti pasta - 3 lbs","Ricotta cheese - 3 lbs","Spinach, chopped - 2 lbs","Mozzarella cheese - 2 lbs","Parmesan cheese - 1 lb","Marinara sauce - 3 gallons","Eggs - 6"],instructions:["Cook pasta until soft","Mix ricotta, spinach, eggs, cheese","Fill manicotti tubes","Layer with sauce","Bake at 350°F for 40 minutes"],notes:"Can be prepared ahead"},{name:"Herb-Baked Chicken with Root Vegetables",description:"Roasted chicken with soft root vegetables",ingredients:["Chicken parts - 10 lbs","Carrots, chunked - 3 lbs","Potatoes, chunked - 3 lbs","Onions, quartered - 2 lbs","Rosemary - 0.5 cup","Thyme - 0.5 cup","Olive oil - 1 cup","Low-sodium chicken broth - 1 cup"],instructions:["Place vegetables in baking pan","Arrange chicken on top","Season with herbs","Drizzle with oil and broth","Roast at 375°F for 1 hour"],notes:"All-in-one meal"},{name:"Crab Cakes",description:"Tender crab cakes with minimal filling",ingredients:["Crab meat - 6 lbs","Breadcrumbs - 1 lb","Eggs - 8","Mayonnaise - 0.5 cup","Green onions, chopped - 0.5 lb","Lemon juice - 0.5 cup","Old Bay seasoning - 1 tablespoon"],instructions:["Mix all ingredients gently","Form into cakes","Bake at 375°F for 20 minutes","Serve with lemon wedge"],notes:"Don't overwork mixture"},{name:"Braised Chicken in Red Wine",description:"Chicken in wine sauce with mushrooms",ingredients:["Chicken parts - 10 lbs","Red wine - 2 cups","Low-sodium chicken broth - 2 cups","Mushrooms, whole - 2 lbs","Pearl onions - 1.5 lbs","Carrots, chunked - 2 lbs","Thyme - 0.5 cup","Bay leaves - 2"],instructions:["Brown chicken","Add wine and broth","Add vegetables and herbs","Simmer 1 hour until tender","Adjust seasoning"],notes:"Rich, developed flavors"},{name:"Baked Grouper with Tomato",description:"White fish with fresh tomato topping",ingredients:["Grouper fillets - 8 lbs","Fresh tomatoes, diced - 2 lbs","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup","Fresh basil - 1 cup","Lemon juice - 0.5 cup"],instructions:["Arrange grouper in baking pan","Top with tomato mixture","Drizzle with olive oil","Bake at 375°F for 18-20 minutes","Garnish with basil"],notes:"Light Mediterranean style"},{name:"Chicken and Rice Casserole",description:"Creamy chicken with rice and vegetables",ingredients:["Cooked chicken, diced - 5 lbs","White rice, cooked - 4 lbs","Peas, frozen - 2 lbs","Carrots, diced - 1.5 lbs","Low-sodium chicken broth - 2 cups","Heavy cream - 1 quart","Onion, diced - 1 lb"],instructions:["Mix all ingredients","Transfer to casserole dishes","Bake at 350°F for 30 minutes","Cover if browning too quickly"],notes:"One-dish meal"},{name:"Veal Parmesan",description:"Breaded veal with marinara and cheese",ingredients:["Veal cutlets - 8 lbs","Breadcrumbs - 1.5 lbs","Eggs - 10","Marinara sauce - 2 gallons","Mozzarella cheese - 2 lbs","Parmesan cheese - 1 lb","Olive oil - 1 cup"],instructions:["Pound veal thin","Coat with breadcrumbs","Fry until golden","Top with sauce and cheese","Bake at 375°F for 20 minutes"],notes:"Tender cut, cook gently"},{name:"Seafood Paella",description:"Spanish rice with shrimp, mussels, and vegetables",ingredients:["Shrimp, large - 4 lbs","Mussels - 3 lbs","Rice - 3 lbs","Onion, diced - 1.5 lbs","Bell peppers, diced - 1 lb","Peas, frozen - 1 lb","Low-sodium fish broth - 4 cups","Saffron threads - 1 teaspoon","Garlic - 0.5 lb"],instructions:["Heat broth with saffron","Cook rice","Add vegetables","Add seafood","Cook until cooked through"],notes:"Traditional Spanish dish"},{name:"Chicken Mozzarella",description:"Chicken breast with mozzarella and tomato",ingredients:["Chicken breasts - 8 lbs","Mozzarella cheese slices - 2 lbs","Tomatoes, sliced - 2 lbs","Fresh basil - 1 cup","Olive oil - 0.5 cup","Balsamic vinegar - 0.5 cup","Garlic, minced - 0.5 lb"],instructions:["Roast chicken","Top with tomato and cheese","Return to oven until cheese melts","Drizzle with balsamic","Garnish with basil"],notes:"Italian inspired"},{name:"Baked Snapper with Herbs",description:"Red snapper with Mediterranean herbs",ingredients:["Snapper fillets - 8 lbs","Olive oil - 0.5 cup","Oregano - 0.5 cup","Thyme - 0.5 cup","Lemon juice - 1 cup","Garlic, minced - 0.5 lb","Black pepper - to taste"],instructions:["Arrange snapper in pan","Mix herbs with oil and lemon","Pour over snapper","Bake at 375°F for 18-20 minutes"],notes:"Mild, sweet flavor"},{name:"Chicken Liver Pâté",description:"Smooth, buttery chicken liver spread",ingredients:["Chicken livers - 4 lbs","Butter - 2 lbs","Onion, diced - 1 lb","Garlic - 0.5 lb","Cognac - 0.5 cup","Heavy cream - 0.5 cup","Thyme - 0.5 cup"],instructions:["Sauté livers with onion","Flame with cognac","Blend until smooth","Mix with butter and cream","Mold into shape","Chill before serving"],notes:"Very rich, small portions"},{name:"Poached Salmon",description:"Gently poached salmon in herb broth",ingredients:["Salmon fillets - 8 lbs","Low-sodium fish broth - 2 gallons","Lemon - 3 whole","Onion, sliced - 1 lb","Fresh dill - 1 cup","Fresh parsley - 1 cup","Black pepper - to taste"],instructions:["Heat broth to gentle simmer","Add lemon and onion","Add herbs","Gently place salmon in broth","Poach 12-15 minutes","Remove and serve with broth"],notes:"Very gentle cooking"},{name:"Beef Rigatoni",description:"Ground beef with pasta in tomato sauce",ingredients:["Ground beef - 8 lbs","Rigatoni pasta - 4 lbs","Onion, diced - 2 lbs","Garlic, minced - 0.5 lb","Marinara sauce - 3 gallons","Parmesan cheese - 1 lb","Italian herbs - 2 tablespoons"],instructions:["Brown ground beef","Sauté onion and garlic","Add marinara sauce","Simmer 20 minutes","Toss with cooked pasta","Top with cheese"],notes:"Family-style favorite"},{name:"Shrimp and Grits",description:"Southern-style shrimp over creamy grits",ingredients:["Shrimp, large - 8 lbs","Grits - 2 lbs","Chicken broth - 4 cups","Heavy cream - 2 cups","Butter - 1 lb","Bacon, diced - 1 lb","Onion, diced - 1 lb","Garlic, minced - 0.5 lb"],instructions:["Cook grits until creamy","Stir in butter and cream","Render bacon","Sauté shrimp with onion and garlic","Serve shrimp over grits"],notes:"Comfort food classic"},{name:"Herb-Crusted Lamb Chops",description:"Tender lamb chops with herb crust",ingredients:["Lamb chops - 8 lbs","Breadcrumbs - 1.5 lbs","Eggs - 8","Rosemary - 0.5 cup","Thyme - 0.5 cup","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup"],instructions:["Mix breadcrumbs with herbs","Dip chops in egg","Coat with herb mixture","Bake at 375°F for 20-25 minutes","Rest before serving"],notes:"Ensure cooked through"},{name:"Mussels in White Wine",description:"Tender mussels in garlic and wine broth",ingredients:["Mussels - 8 lbs","White wine - 2 cups","Butter - 1 lb","Garlic, minced - 1 lb","Onion, diced - 1 lb","Fresh parsley - 1 cup","Crusty bread - 2 lbs"],instructions:["Heat butter and garlic","Add onion","Add wine and bring to boil","Add mussels","Cover and steam 5-7 minutes","Serve with broth and bread"],notes:"Discard any unopened mussels"},{name:"Braised Rabbit",description:"Tender rabbit in wine sauce",ingredients:["Rabbit, parts - 8 lbs","Red wine - 2 cups","Low-sodium chicken broth - 2 cups","Mushrooms, whole - 2 lbs","Pearl onions - 1.5 lbs","Carrots, chunked - 2 lbs","Rosemary - 0.5 cup","Bay leaves - 2"],instructions:["Brown rabbit parts","Add wine and broth","Add vegetables and herbs","Simmer 1.5-2 hours","Meat should be very tender"],notes:"Delicate game meat"},{name:"Tilapia Piccata",description:"Tilapia with lemon and capers",ingredients:["Tilapia fillets - 8 lbs","Flour - 1 lb","Lemon juice - 1 cup","Capers - 1 cup","Butter - 1 lb","Olive oil - 0.5 cup","Chicken broth - 1 cup"],instructions:["Lightly coat with flour","Sauté until golden","Add lemon and capers","Simmer gently","Serve immediately"],notes:"Light and flavorful"},{name:"Chicken and Mushroom Stew",description:"Hearty stew with chicken and vegetables",ingredients:["Chicken, cubed - 8 lbs","Mushrooms, halved - 2 lbs","Carrots, chunked - 2 lbs","Potatoes, chunked - 3 lbs","Pearl onions - 1.5 lbs","Low-sodium chicken broth - 4 gallons","Bay leaves - 3","Thyme - 0.5 cup"],instructions:["Simmer chicken in broth","Add vegetables and herbs","Cook 1 hour","Vegetables should be very tender"],notes:"One-pot meal"},{name:"Baked Bass with Lemon",description:"White bass with light lemon butter",ingredients:["Sea bass fillets - 8 lbs","Butter - 1 lb","Lemon juice - 1 cup","Fresh dill - 0.5 cup","Garlic - 0.5 lb","Black pepper - to taste"],instructions:["Arrange bass on parchment","Top with butter and lemon","Season with dill and garlic","Bake at 375°F for 18-20 minutes"],notes:"Delicate white fish"},{name:"Braised Short Ribs",description:"Fall-apart tender beef ribs",ingredients:["Beef short ribs - 12 lbs","Low-sodium beef broth - 4 gallons","Root vegetables - 4 lbs mixed","Tomato paste - 0.5 cup","Red wine - 2 cups","Bay leaves - 3"],instructions:["Brown ribs","Add broth and wine","Simmer 3-4 hours","Meat falls from bone","Serve with soft vegetables"],notes:"Very tender, may need supervision"},{name:"Chicken Almondine",description:"Chicken with almond butter sauce",ingredients:["Chicken breasts - 8 lbs","Butter - 1.5 lbs","Sliced almonds - 1.5 lbs","Lemon juice - 1 cup","Chicken broth - 1 cup"],instructions:["Sauté chicken until golden","Make beurre noisette with almonds","Add lemon and broth","Plate chicken","Drizzle with sauce"],notes:"Rich, nutty sauce"},{name:"Crab Boil",description:"Steamed crabs with seasoning",ingredients:["Live crabs - 12 lbs","Water - 6 gallons","Old Bay seasoning - 1 cup","Corn - 12 ears","Potatoes - 4 lbs","Onions - 3 whole"],instructions:["Fill pot with water","Add Old Bay and vegetables","Bring to boil","Add crabs","Steam 20-25 minutes","Serve with butter"],notes:"Requires detailed instructions for eating"},{name:"Veal Marsala",description:"Tender veal in wine sauce",ingredients:["Veal scaloppine - 8 lbs","Marsala wine - 2 cups","Mushrooms, sliced - 2 lbs","Butter - 1 lb","Shallots, minced - 0.5 lb","Fresh parsley - 1 cup"],instructions:["Sauté veal","Set aside","Sauté mushrooms","Add wine and butter","Return veal","Simmer gently 5 minutes"],notes:"Pound veal very thin"},{name:"Halibut Veracruz",description:"Halibut with tomatoes, olives, capers",ingredients:["Halibut fillets - 8 lbs","Diced tomatoes - 2 lbs","Green olives - 1 lb","Capers - 0.5 cup","Onion, diced - 1 lb","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup"],instructions:["Make sauce with vegetables","Place halibut in baking pan","Pour sauce over","Bake at 375°F for 20-25 minutes"],notes:"Mexican-inspired preparation"},{name:"Chicken with Olives",description:"Mediterranean chicken with green olives",ingredients:["Chicken parts - 10 lbs","Green olives - 2 lbs","Lemon juice - 1 cup","Garlic, minced - 0.5 lb","Olive oil - 0.5 cup","Preserved lemons - 0.5 cup"],instructions:["Sauté chicken","Add olives and seasonings","Simmer 45 minutes","Add preserved lemons","Cook 15 minutes more"],notes:"Rich, briny flavors"},{name:"Trout Almondine",description:"Trout with almond brown butter",ingredients:["Trout fillets - 8 lbs","Butter - 1.5 lbs","Almonds, sliced - 1.5 lbs","Lemon juice - 0.5 cup","Fresh parsley - 1 cup"],instructions:["Cook trout gently","Make brown butter with almonds","Plate trout","Drizzle with almond butter","Garnish with parsley"],notes:"Elegant preparation"},{name:"Beef Medallions",description:"Tender beef tenderloin medallions",ingredients:["Beef tenderloin - 8 lbs","Butter - 1 lb","Shallots, minced - 0.5 lb","Red wine - 1 cup","Beef broth - 1 cup","Fresh thyme - 0.5 cup"],instructions:["Sear medallions","Remove","Make pan sauce","Reduce wine and broth","Plate medallions","Drizzle with sauce"],notes:"Premium cut, don't overcook"},{name:"Lobster Newburg",description:"Lobster in rich cream sauce",ingredients:["Lobster meat - 6 lbs","Butter - 1 lb","Sherry wine - 1 cup","Heavy cream - 2 quarts","Egg yolks - 8","Paprika - 1 tablespoon"],instructions:["Heat butter","Add lobster","Flame with sherry","Add cream","Temper egg yolks","Combine carefully","Serve over soft toast"],notes:"Very rich preparation"}
+            ],
+
+            weeklySpecials: [
+                {
+                    type: "salad",
+                    name: "Grilled Chicken Caesar Salad",
+                    description: "Classic Caesar with tender grilled chicken, parmesan, and soft croutons",
+                    ingredients: [
+                        "Grilled chicken breast strips - 6 lbs",
+                        "Romaine lettuce, chopped - 8 lbs",
+                        "Parmesan cheese, shaved - 1 lb",
+                        "Soft bread croutons - 2 lbs",
+                        "Low-fat Caesar dressing - 2 cups",
+                        "Lemon - 4 pieces for garnish"
+                    ],
+                    instructions: [
+                        "Wash and dry lettuce thoroughly",
+                        "Chop into bite-sized pieces",
+                        "Slice grilled chicken into strips",
+                        "Toss lettuce with dressing",
+                        "Top with chicken, croutons, and parmesan",
+                        "Serve immediately"
+                    ],
+                    notes: "Use soft croutons for easy chewing. Dressing should be creamy but not heavy."
+                },
+                {
+                    type: "salad",
+                    name: "Tuna Salad Plate",
+                    description: "Mild tuna salad on mixed greens with soft vegetables",
+                    ingredients: [
+                        "Canned tuna in water - 5 lbs",
+                        "Light mayonnaise - 2 cups",
+                        "Celery, finely diced - 1 lb",
+                        "Green onion, chopped - 0.5 lb",
+                        "Mixed greens - 6 lbs",
+                        "Tomatoes, sliced soft - 2 lbs",
+                        "Cucumber, sliced - 2 lbs"
+                    ],
+                    instructions: [
+                        "Drain tuna thoroughly",
+                        "Mix with mayo, celery, green onion",
+                        "Arrange mixed greens on plates",
+                        "Scoop tuna salad onto greens",
+                        "Arrange tomato and cucumber slices",
+                        "Serve with light vinaigrette"
+                    ],
+                    notes: "Low mercury tuna recommended. Chop vegetables small."
+                },
+                {
+                    type: "salad",
+                    name: "Garden Vegetable Salad",
+                    description: "Fresh seasonal vegetables with light vinaigrette",
+                    ingredients: [
+                        "Mixed greens - 8 lbs",
+                        "Tomatoes, diced - 2 lbs",
+                        "Cucumbers, sliced - 2 lbs",
+                        "Carrots, shredded - 1 lb",
+                        "Bell peppers, diced - 1.5 lbs",
+                        "Soft shredded cheese - 1 lb",
+                        "Light vinaigrette dressing - 1 cup"
+                    ],
+                    instructions: [
+                        "Wash and dry all vegetables",
+                        "Chop into appropriate sizes",
+                        "Mix greens and vegetables in large bowls",
+                        "Drizzle with light vinaigrette",
+                        "Toss gently to combine",
+                        "Portion into individual bowls"
+                    ],
+                    notes: "Use soft, ripe vegetables. Cut into manageable pieces."
+                },
+                {
+                    type: "burger",
+                    name: "Lean Beef Burger",
+                    description: "Juicy ground beef patty on soft bun with toppings",
+                    ingredients: [
+                        "Lean ground beef - 8 lbs",
+                        "Soft burger buns - 30 each",
+                        "Cheddar cheese slices - 2 lbs",
+                        "Tomato slices - 2 lbs",
+                        "Lettuce leaves - 1 lb",
+                        "Mayonnaise (light) - 2 cups",
+                        "Pickles - 1 lb",
+                        "Onion slices - 1 lb"
+                    ],
+                    instructions: [
+                        "Form beef into 2-3 oz patties",
+                        "Cook on griddle to 160°F internal temp",
+                        "Toast buns lightly",
+                        "Assemble: bun, mayo, lettuce, burger, cheese, tomato, top bun",
+                        "Wrap in foil for warmth",
+                        "Serve with soft sides like fries or applesauce"
+                    ],
+                    notes: "Keep patties small for easier handling. Ensure buns are soft."
+                },
+                {
+                    type: "burger",
+                    name: "Turkey Burger",
+                    description: "Lean ground turkey patty with herb seasoning",
+                    ingredients: [
+                        "Ground turkey - 8 lbs",
+                        "Breadcrumbs - 1 lb",
+                        "Eggs - 8",
+                        "Soft burger buns - 30 each",
+                        "Swiss cheese - 2 lbs",
+                        "Tomato slices - 2 lbs",
+                        "Lettuce - 1 lb",
+                        "Mustard (Dijon) - 1 cup"
+                    ],
+                    instructions: [
+                        "Mix turkey, breadcrumbs, eggs until combined",
+                        "Form into 2-3 oz patties",
+                        "Cook on griddle to 160°F internal temp",
+                        "Toast buns gently",
+                        "Assemble: bun, mustard, lettuce, burger, cheese, tomato, top bun",
+                        "Serve warm"
+                    ],
+                    notes: "Lower in fat than beef. Good alternative for health-conscious residents."
+                },
+                {
+                    type: "burger",
+                    name: "Veggie Burger",
+                    description: "Plant-based burger with vegetables and beans",
+                    ingredients: [
+                        "Black bean patties (frozen) - 30 each",
+                        "Soft burger buns - 30 each",
+                        "Pepper jack cheese (optional) - 2 lbs",
+                        "Tomato slices - 2 lbs",
+                        "Avocado slices - 1 lb",
+                        "Lettuce - 1 lb",
+                        "Vegan mayo - 2 cups",
+                        "Salsa (mild) - 1 cup"
+                    ],
+                    instructions: [
+                        "Heat veggie patties according to package",
+                        "Warm buns gently",
+                        "Assemble: bun, mayo, lettuce, patty, tomato, avocado, salsa, top bun",
+                        "Wrap in foil to maintain warmth",
+                        "Serve with vegetable sides"
+                    ],
+                    notes: "Good for vegetarian residents. Can substitute beans if needed."
+                }
+            ],
+
+            breakfastItems: {
+                monFri: [
+                    {name:"Soft Scrambled Eggs with Chives",description:"Ultra-soft eggs with fresh chives",ingredients:["Eggs - 50","Butter - 1 lb","Heavy cream - 0.5 cup","Fresh chives - 1 cup","Salt and pepper - to taste"],instructions:["Beat eggs gently","Heat butter in large pans","Add eggs","Stir slowly and constantly","Cook until soft curds form","Top with chives"],notes:"Don't overcook - very creamy"},{name:"Blueberry Muffins",description:"Tender muffins with fresh blueberries",ingredients:["All-purpose flour - 3 lbs","Baking powder - 3 tablespoons","Eggs - 12","Milk - 2 quarts","Butter, melted - 0.5 lb","Sugar - 1 lb","Fresh blueberries - 2 lbs"],instructions:["Mix dry ingredients","Whisk wet ingredients","Combine gently","Fold in blueberries","Bake in muffin tins at 375°F for 20 minutes"],notes:"Soft texture"},{name:"Cinnamon Toast",description:"Soft bread with cinnamon sugar",ingredients:["Soft bread - 2 loaves","Butter - 1 lb","Sugar - 1 cup","Cinnamon - 2 tablespoons","Eggs - 6 (for dipping, optional)"],instructions:["Mix cinnamon and sugar","Toast bread lightly","Spread with butter","Sprinkle with cinnamon sugar","Serve warm"],notes:"Simple classic"},{name:"Breakfast Quesadilla",description:"Flour tortilla filled with eggs and cheese",ingredients:["Flour tortillas (soft) - 30","Eggs - 40","Cheddar cheese - 2 lbs","Diced ham - 1 lb","Bell peppers, diced - 1 lb","Onion, diced - 0.5 lb","Butter - 0.5 lb"],instructions:["Scramble eggs","Fill tortilla with eggs, cheese, ham","Fold and cook on griddle","Cut into quarters","Serve with salsa"],notes:"Can be made ahead and reheated"},{name:"Cottage Cheese with Fresh Fruit",description:"Creamy cottage cheese with berries and melon",ingredients:["Cottage cheese (low-fat) - 8 lbs","Mixed berries - 4 lbs","Cantaloupe, cubed - 2 lbs","Honey - 1 cup","Walnuts, chopped - 0.5 lb"],instructions:["Portion cottage cheese into bowls","Top with berries and melon","Drizzle with honey","Sprinkle walnuts","Serve chilled"],notes:"Light, protein-rich option"},{name:"Cream Cheese and Herb Omelet",description:"Fluffy omelet with cream cheese and herbs",ingredients:["Eggs - 50","Cream cheese - 1.5 lbs","Fresh herbs (dill, chives) - 1 cup","Butter - 0.5 lb","Salt and pepper - to taste"],instructions:["Beat eggs until foamy","Heat butter in pan","Pour eggs","When partially set, add cream cheese","Sprinkle with herbs","Fold and slide onto plate"],notes:"Individual omelets recommended"},{name:"Banana Bread",description:"Moist banana bread with walnuts",ingredients:["Very ripe bananas - 6 lbs","All-purpose flour - 3 lbs","Baking soda - 1 tablespoon","Eggs - 12","Butter, melted - 1 lb","Sugar - 1.5 lbs","Walnuts, chopped - 1 lb"],instructions:["Mash bananas thoroughly","Mix with butter and sugar","Add eggs","Fold in flour and baking soda","Add walnuts","Bake in loaf pans at 350°F for 1 hour"],notes:"Very moist texture"},{name:"Breakfast Pudding",description:"Bread pudding with cinnamon and raisins",ingredients:["Soft bread, cubed - 3 lbs","Eggs - 20","Milk - 2 gallons","Sugar - 1 cup","Cinnamon - 1 tablespoon","Raisins - 1 lb","Butter - 0.5 lb"],instructions:["Cube bread and place in baking dishes","Whisk eggs, milk, sugar, cinnamon","Pour over bread","Add raisins","Bake at 350°F for 45-50 minutes"],notes:"Warm comfort breakfast"},{name:"Soft Boiled Eggs with Toast Soldiers",description:"Creamy soft-boiled eggs with bread strips",ingredients:["Eggs - 30","Soft bread - 2 loaves","Butter - 0.5 lb","Salt and pepper - to taste"],instructions:["Bring water to boil","Gently place eggs","Cook 4-5 minutes","Place in egg cups","Cut bread into strips","Butter strips","Dip in runny yolk"],notes:"Traditional British breakfast"},{name:"Herb and Cheese Egg Muffins",description:"Baked egg cups with vegetables and cheese",ingredients:["Eggs - 60","Cheddar cheese - 1 lb","Bell peppers, diced - 1 lb","Onion, diced - 0.5 lb","Fresh herbs - 0.5 cup","Butter - 0.5 lb (for pans)"],instructions:["Prep muffin tins with butter","Mix eggs, cheese, vegetables, herbs","Pour into tins","Bake at 375°F for 20-25 minutes","Cool slightly before removing"],notes:"Can be made ahead and frozen"},{name:"Scrambled Eggs and Toast",description:"Soft scrambled eggs with buttered whole wheat toast",
+                        ingredients: [
+                            "Eggs - 48",
+                            "Butter - 1 lb",
+                            "Whole wheat bread - 2 loaves",
+                            "Low-sodium chicken broth (optional) - 0.5 cup",
+                            "Black pepper - to taste",
+                            "Fresh chives - 0.5 cup"
+                        ],
+                        instructions: [
+                            "Beat eggs gently",
+                            "Melt butter in large pans over medium heat",
+                            "Add eggs, stir slowly and gently",
+                            "Cook until soft, creamy curds form",
+                            "Toast bread until golden",
+                            "Butter toast and serve with eggs"
+                        ],
+                        notes: "Don't overcook eggs - they should be soft and creamy. Add milk if desired."
+                    },
+                    {
+                        name: "Steel Cut Oatmeal with Fruit",
+                        description: "Warm, creamy oatmeal topped with berries and nuts",
+                        ingredients: [
+                            "Steel cut oats - 5 lbs",
+                            "Water - 8 gallons",
+                            "Butter - 0.5 lb",
+                            "Honey - 1 cup",
+                            "Mixed berries (frozen) - 3 lbs",
+                            "Walnuts, chopped - 1 lb",
+                            "Cinnamon - 2 tablespoons",
+                            "Salt - 1 tablespoon"
+                        ],
+                        instructions: [
+                            "Bring water and salt to boil",
+                            "Add oats slowly, stirring constantly",
+                            "Reduce heat and simmer 30-40 minutes",
+                            "Stir occasionally to prevent sticking",
+                            "Top with berries, nuts, cinnamon, honey",
+                            "Serve warm in individual bowls"
+                        ],
+                        notes: "Excellent fiber source. Can soften berries if needed."
+                    },
+                    {
+                        name: "Yogurt Parfait with Granola",
+                        description: "Creamy yogurt layered with soft granola and fresh fruit",
+                        ingredients: [
+                            "Low-fat yogurt - 8 lbs",
+                            "Soft granola (low-sugar) - 2 lbs",
+                            "Mixed berries - 3 lbs",
+                            "Honey - 1 cup",
+                            "Almonds, sliced - 0.5 lb",
+                            "Coconut flakes - 0.5 lb"
+                        ],
+                        instructions: [
+                            "Portion yogurt into bowls",
+                            "Layer with soft granola",
+                            "Top with berries",
+                            "Drizzle with honey",
+                            "Sprinkle almonds and coconut",
+                            "Serve immediately"
+                        ],
+                        notes: "Use soft granola. Can make ahead but assemble close to serving."
+                    }
+                ],
+                saturday: [
+                    {
+                        name: "Pancakes with Maple Syrup",
+                        description: "Fluffy pancakes with warm maple syrup and butter",
+                        ingredients: [
+                            "All-purpose flour - 3 lbs",
+                            "Baking powder - 3 tablespoons",
+                            "Eggs - 36",
+                            "Milk - 2 gallons",
+                            "Butter - 1 lb",
+                            "Salt - 1 tablespoon",
+                            "Pure maple syrup - 1 quart",
+                            "Fresh berries (optional) - 2 lbs"
+                        ],
+                        instructions: [
+                            "Mix flour, baking powder, salt in large bowl",
+                            "Whisk eggs, milk, melted butter together",
+                            "Combine wet and dry ingredients gently",
+                            "Cook on greased griddle at medium heat",
+                            "Flip when bubbles appear on top",
+                            "Serve with warm maple syrup and butter"
+                        ],
+                        notes: "Keep warm in oven until all cooked. Can add berries to batter."
+                    },
+                    {
+                        name: "Bacon and Egg Breakfast",
+                        description: "Crispy bacon and soft fried eggs with toast",
+                        ingredients: [
+                            "Bacon strips - 3 lbs",
+                            "Eggs - 48",
+                            "Whole wheat bread - 2 loaves",
+                            "Butter - 0.5 lb",
+                            "Salt and pepper - to taste",
+                            "Fresh chives (optional) - 0.5 cup"
+                        ],
+                        instructions: [
+                            "Cook bacon until crispy, drain on paper towels",
+                            "Toast bread until golden",
+                            "Butter toast generously",
+                            "Fry eggs sunny-side up or as preferred",
+                            "Arrange on plates with bacon",
+                            "Serve immediately while warm"
+                        ],
+                        notes: "Limit bacon portions for heart-healthy diets. Use extra crispy."
+                    }
+                ],
+                sunday: [
+                    {
+                        name: "French Toast with Berries",
+                        description: "Soft, eggy French toast with fresh berries",
+                        ingredients: [
+                            "White bread, sliced - 2 loaves",
+                            "Eggs - 40",
+                            "Milk - 1 quart",
+                            "Cinnamon - 2 tablespoons",
+                            "Vanilla extract - 2 tablespoons",
+                            "Butter - 1 lb",
+                            "Maple syrup - 1 quart",
+                            "Mixed berries - 2 lbs"
+                        ],
+                        instructions: [
+                            "Whisk eggs, milk, cinnamon, vanilla",
+                            "Dip bread slices briefly in mixture",
+                            "Cook on buttered griddle until golden",
+                            "Top with fresh berries and syrup",
+                            "Serve warm on individual plates",
+                            "Add powdered sugar if desired"
+                        ],
+                        notes: "Use soft bread. Don't soak too long or bread becomes mushy."
+                    },
+                    {
+                        name: "Breakfast Burrito",
+                        description: "Soft tortilla filled with eggs, sausage, cheese",
+                        ingredients: [
+                            "Flour tortillas (large, soft) - 30",
+                            "Eggs - 50",
+                            "Breakfast sausage - 2 lbs",
+                            "Cheddar cheese, shredded - 2 lbs",
+                            "Diced potatoes, cooked - 3 lbs",
+                            "Bell peppers, diced - 1 lb",
+                            "Onion, diced - 0.5 lb",
+                            "Salsa - 1 cup"
+                        ],
+                        instructions: [
+                            "Cook sausage, crumble and drain",
+                            "Scramble eggs gently",
+                            "Warm tortillas until pliable",
+                            "Place ingredients in center of each tortilla",
+                            "Roll tightly, wrap in foil",
+                            "Heat if needed, serve warm"
+                        ],
+                        notes: "Can be made ahead and reheated. Use soft tortillas."
+                    }
+                ]
+            }
+        };
+
+        // Initialize week selector
+        function initializeWeek() {
+            const today = new Date();
+            const weekInput = document.getElementById('week-select');
+            weekInput.value = today.toISOString().split('T')[0];
+        }
+
+        // Generate random item from array
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        // Generate full week menu
+        function generateFullWeek() {
+            const servingSize = parseInt(document.getElementById('serving-size').value);
+            const week = document.getElementById('week-select').value;
+            
+            if (!week) {
+                alert('Please select a week');
+                return;
+            }
+
+            weeklyMenu.servingSize = servingSize;
+            weeklyMenu.week = week;
+            weeklyMenu.days = [];
+
+            // Generate menu for each day
+            daysOfWeek.forEach((day, index) => {
+                const dayMenu = {
+                    day: day,
+                    soup: getRandomItem(recipeDatabase.soups),
+                    special: getRandomItem(recipeDatabase.dailySpecials),
+                    salad: getRandomItem(recipeDatabase.weeklySpecials.filter(s => s.type === 'salad')),
+                    burger: getRandomItem(recipeDatabase.weeklySpecials.filter(s => s.type === 'burger')),
+                    breakfast: getRandomItem(index < 5 ? recipeDatabase.breakfastItems.monFri : 
+                                           index === 5 ? recipeDatabase.breakfastItems.saturday :
+                                           recipeDatabase.breakfastItems.sunday)
+                };
+                weeklyMenu.days.push(dayMenu);
+            });
+
+            displayMenu();
+        }
+
+        // Regenerate single day
+        function regenerateDay() {
+            const dayIndex = parseInt(document.getElementById('day-regenerate').value);
+            if (weeklyMenu.days.length === 0) {
+                alert('Please generate full week first');
+                return;
+            }
+
+            weeklyMenu.days[dayIndex].soup = getRandomItem(recipeDatabase.soups);
+            weeklyMenu.days[dayIndex].special = getRandomItem(recipeDatabase.dailySpecials);
+            weeklyMenu.days[dayIndex].breakfast = getRandomItem(dayIndex < 5 ? recipeDatabase.breakfastItems.monFri : 
+                                                                dayIndex === 5 ? recipeDatabase.breakfastItems.saturday :
+                                                                recipeDatabase.breakfastItems.sunday);
+            displayMenu();
+        }
+
+        // Display menu
+        function displayMenu() {
+            const display = document.getElementById('menu-display');
+            
+            if (weeklyMenu.days.length === 0) {
+                display.innerHTML = '<div class="loading">Generate a menu to see recipes and instructions</div>';
+                return;
+            }
+
+            let html = `<h2>📅 Weekly Menu (Serves ${weeklyMenu.servingSize} residents)</h2><div class="week-grid">`;
+
+            weeklyMenu.days.forEach(dayMenu => {
+                html += `
+                    <div class="day-menu">
+                        <h3>${dayMenu.day}</h3>
+                        
+                        <!-- Breakfast -->
+                        <div class="menu-section">
+                            <h4>🌅 Breakfast</h4>
+                            <div class="menu-item-name">${dayMenu.breakfast.name}</div>
+                            <div class="menu-item-desc">${dayMenu.breakfast.description}</div>
+                            <strong>Ingredients:</strong>
+                            <ul class="ingredients-list">
+                                ${dayMenu.breakfast.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                            </ul>
+                            <strong>Instructions:</strong>
+                            <ol class="instructions-list">
+                                ${dayMenu.breakfast.instructions.map(inst => `<li>${inst}</li>`).join('')}
+                            </ol>
+                            ${dayMenu.breakfast.notes ? `<div class="recipe-notes"><strong>Notes:</strong> ${dayMenu.breakfast.notes}</div>` : ''}
+                        </div>
+
+                        <!-- Soup -->
+                        <div class="menu-section">
+                            <h4>🥘 Soup of the Day</h4>
+                            <div class="menu-item-name">${dayMenu.soup.name}</div>
+                            <div class="menu-item-desc">${dayMenu.soup.description}</div>
+                            <strong>Ingredients (serves ${weeklyMenu.servingSize}):</strong>
+                            <ul class="ingredients-list">
+                                ${dayMenu.soup.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                            </ul>
+                            ${dayMenu.soup.notes ? `<div class="recipe-notes"><strong>Notes:</strong> ${dayMenu.soup.notes}</div>` : ''}
+                        </div>
+
+                        <!-- Daily Special -->
+                        <div class="menu-section">
+                            <h4>⭐ Daily Special</h4>
+                            <div class="menu-item-name">${dayMenu.special.name}</div>
+                            <div class="menu-item-desc">${dayMenu.special.description}</div>
+                            <strong>Ingredients (serves ${weeklyMenu.servingSize}):</strong>
+                            <ul class="ingredients-list">
+                                ${dayMenu.special.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                            </ul>
+                            <strong>Instructions:</strong>
+                            <ol class="instructions-list">
+                                ${dayMenu.special.instructions.map(inst => `<li>${inst}</li>`).join('')}
+                            </ol>
+                            ${dayMenu.special.notes ? `<div class="recipe-notes"><strong>Notes:</strong> ${dayMenu.special.notes}</div>` : ''}
+                        </div>
+
+                        <!-- Weekly Salad -->
+                        <div class="menu-section">
+                            <h4>🥗 Weekly Salad Special</h4>
+                            <div class="menu-item-name">${dayMenu.salad.name}</div>
+                            <div class="menu-item-desc">${dayMenu.salad.description}</div>
+                            <strong>Ingredients (serves ${weeklyMenu.servingSize}):</strong>
+                            <ul class="ingredients-list">
+                                ${dayMenu.salad.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                            </ul>
+                            <strong>Instructions:</strong>
+                            <ol class="instructions-list">
+                                ${dayMenu.salad.instructions.map(inst => `<li>${inst}</li>`).join('')}
+                            </ol>
+                            ${dayMenu.salad.notes ? `<div class="recipe-notes"><strong>Notes:</strong> ${dayMenu.salad.notes}</div>` : ''}
+                        </div>
+
+                        <!-- Weekly Burger -->
+                        <div class="menu-section">
+                            <h4>🍔 Weekly Burger Special</h4>
+                            <div class="menu-item-name">${dayMenu.burger.name}</div>
+                            <div class="menu-item-desc">${dayMenu.burger.description}</div>
+                            <strong>Ingredients (serves ${weeklyMenu.servingSize}):</strong>
+                            <ul class="ingredients-list">
+                                ${dayMenu.burger.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                            </ul>
+                            <strong>Instructions:</strong>
+                            <ol class="instructions-list">
+                                ${dayMenu.burger.instructions.map(inst => `<li>${inst}</li>`).join('')}
+                            </ol>
+                            ${dayMenu.burger.notes ? `<div class="recipe-notes"><strong>Notes:</strong> ${dayMenu.burger.notes}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            display.innerHTML = html;
+        }
+
+        // Export as Text
+        function exportMenuAsText() {
+            if (weeklyMenu.days.length === 0) {
+                alert('Please generate a menu first');
+                return;
+            }
+
+            let text = '=== ASSISTED LIVING WEEKLY MENU ===\n';
+            text += `Week of: ${weeklyMenu.week}\n`;
+            text += `Serving Size: ${weeklyMenu.servingSize} residents\n`;
+            text += '='.repeat(60) + '\n\n';
+
+            weeklyMenu.days.forEach(day => {
+                text += `\n${'='.repeat(60)}\n`;
+                text += `${day.day.toUpperCase()}\n`;
+                text += `${'='.repeat(60)}\n\n`;
+
+                // Breakfast
+                text += `🌅 BREAKFAST: ${day.breakfast.name}\n`;
+                text += `${day.breakfast.description}\n\n`;
+                text += 'Ingredients:\n';
+                day.breakfast.ingredients.forEach(ing => text += `  • ${ing}\n`);
+                text += '\nInstructions:\n';
+                day.breakfast.instructions.forEach((inst, i) => text += `  ${i+1}. ${inst}\n`);
+                if (day.breakfast.notes) text += `\nNotes: ${day.breakfast.notes}\n`;
+                text += '\n';
+
+                // Soup
+                text += `🥘 SOUP: ${day.soup.name}\n`;
+                text += `${day.soup.description}\n\n`;
+                text += 'Ingredients:\n';
+                day.soup.ingredients.forEach(ing => text += `  • ${ing}\n`);
+                if (day.soup.notes) text += `\nNotes: ${day.soup.notes}\n`;
+                text += '\n';
+
+                // Special
+                text += `⭐ DAILY SPECIAL: ${day.special.name}\n`;
+                text += `${day.special.description}\n\n`;
+                text += 'Ingredients:\n';
+                day.special.ingredients.forEach(ing => text += `  • ${ing}\n`);
+                text += '\nInstructions:\n';
+                day.special.instructions.forEach((inst, i) => text += `  ${i+1}. ${inst}\n`);
+                if (day.special.notes) text += `\nNotes: ${day.special.notes}\n`;
+                text += '\n';
+
+                // Salad
+                text += `🥗 WEEKLY SALAD: ${day.salad.name}\n`;
+                text += `${day.salad.description}\n\n`;
+                text += 'Ingredients:\n';
+                day.salad.ingredients.forEach(ing => text += `  • ${ing}\n`);
+                text += '\nInstructions:\n';
+                day.salad.instructions.forEach((inst, i) => text += `  ${i+1}. ${inst}\n`);
+                if (day.salad.notes) text += `\nNotes: ${day.salad.notes}\n`;
+                text += '\n';
+
+                // Burger
+                text += `🍔 WEEKLY BURGER: ${day.burger.name}\n`;
+                text += `${day.burger.description}\n\n`;
+                text += 'Ingredients:\n';
+                day.burger.ingredients.forEach(ing => text += `  • ${ing}\n`);
+                text += '\nInstructions:\n';
+                day.burger.instructions.forEach((inst, i) => text += `  ${i+1}. ${inst}\n`);
+                if (day.burger.notes) text += `\nNotes: ${day.burger.notes}\n`;
+                text += '\n';
+            });
+
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Weekly_Menu_${weeklyMenu.week}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Export as CSV
+        function exportMenuAsCSV() {
+            if (weeklyMenu.days.length === 0) {
+                alert('Please generate a menu first');
+                return;
+            }
+
+            let csv = 'Day,Item Type,Name,Description,Ingredients,Instructions,Notes\n';
+
+            weeklyMenu.days.forEach(day => {
+                const escapeCSV = (str) => {
+                    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                        return '"' + str.replace(/"/g, '""') + '"';
+                    }
+                    return str;
+                };
+
+                // Breakfast
+                csv += `${day.day},Breakfast,${escapeCSV(day.breakfast.name)},${escapeCSV(day.breakfast.description)},${escapeCSV(day.breakfast.ingredients.join(' | '))},${escapeCSV(day.breakfast.instructions.join(' | '))},${escapeCSV(day.breakfast.notes || '')}\n`;
+
+                // Soup
+                csv += `${day.day},Soup,${escapeCSV(day.soup.name)},${escapeCSV(day.soup.description)},${escapeCSV(day.soup.ingredients.join(' | '))},,${escapeCSV(day.soup.notes || '')}\n`;
+
+                // Special
+                csv += `${day.day},Special,${escapeCSV(day.special.name)},${escapeCSV(day.special.description)},${escapeCSV(day.special.ingredients.join(' | '))},${escapeCSV(day.special.instructions.join(' | '))},${escapeCSV(day.special.notes || '')}\n`;
+
+                // Salad
+                csv += `${day.day},Salad,${escapeCSV(day.salad.name)},${escapeCSV(day.salad.description)},${escapeCSV(day.salad.ingredients.join(' | '))},${escapeCSV(day.salad.instructions.join(' | '))},${escapeCSV(day.salad.notes || '')}\n`;
+
+                // Burger
+                csv += `${day.day},Burger,${escapeCSV(day.burger.name)},${escapeCSV(day.burger.description)},${escapeCSV(day.burger.ingredients.join(' | '))},${escapeCSV(day.burger.instructions.join(' | '))},${escapeCSV(day.burger.notes || '')}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Weekly_Menu_${weeklyMenu.week}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Clear Menu
+        function clearMenu() {
+            if (confirm('Clear the current menu?')) {
+                weeklyMenu.days = [];
+                document.getElementById('menu-display').innerHTML = '';
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWeek();
+            displayMenu();
+        });
+    </script>
+</body>
+</html>

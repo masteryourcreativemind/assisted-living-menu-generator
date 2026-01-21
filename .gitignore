@@ -1,0 +1,74 @@
+# Environment Configuration
+.env
+.env.local
+.env.*.local
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# PHP
+vendor/
+composer.lock
+*.log
+
+# Application Data
+data/recipes.json
+data/*.json
+logs/*.log
+logs/*.txt
+
+# Backups
+backups/
+*.sql.backup
+*.tar.gz
+*.zip
+
+# Uploads & Generated Files
+uploads/
+generated/
+cache/
+temp/
+tmp/
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Session Files
+sessions/
+*.session
+
+# Test Files (if you add testing later)
+phpunit.xml
+.phpunit.result.cache
+tests/_output/
+coverage/
+
+# Node modules (if you add frontend build tools later)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Sensitive Information
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.json
+
+# Documentation Build Files
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
