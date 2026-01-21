@@ -58,7 +58,26 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'
 
             case 'regenerate_day':
                 $dayIndex = isset($_POST['day_index']) ? (int) $_POST['day_index'] : 0;
+
+                // Load current menu from session
+                if (isset($_SESSION['current_menu'])) {
+                    $menuGenerator->currentMenu = $_SESSION['current_menu'];
+                }
+
                 $menu = $menuGenerator->regenerateSingleDay($dayIndex);
+                $_SESSION['current_menu'] = $menu;
+
+                echo json_encode(['success' => true, 'menu' => $menu]);
+                break;
+
+            case 'regenerate_breakfast_sp':
+                // Load current menu from session
+                if (isset($_SESSION['current_menu'])) {
+                    $menuGenerator->currentMenu = $_SESSION['current_menu'];
+                }
+
+                $menu = $menuGenerator->regenerateWeeklyBreakfastSP();
+                $_SESSION['current_menu'] = $menu;
 
                 echo json_encode(['success' => true, 'menu' => $menu]);
                 break;

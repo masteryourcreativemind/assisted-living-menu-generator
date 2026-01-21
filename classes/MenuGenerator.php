@@ -7,7 +7,7 @@
 class MenuGenerator
 {
     private $recipeDb;
-    private $currentMenu;
+    public $currentMenu; // Changed to public for session loading
 
     public function __construct()
     {
@@ -22,14 +22,18 @@ class MenuGenerator
         $daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         $days = [];
 
+        // Generate weekly breakfast special (same for all days)
+        $weeklyBreakfastSP = $this->recipeDb->getRandomBreakfast(true, false);
+
         foreach ($daysOfWeek as $index => $day) {
-            $days[] = $this->generateDayMenu($day, $index, $servingSize);
+            $days[] = $this->generateDayMenu($day, $index, $servingSize, $weeklyBreakfastSP);
         }
 
         $this->currentMenu = [
             'week' => $weekDate,
             'serving_size' => $servingSize,
             'generated_at' => date('Y-m-d H:i:s'),
+            'weekly_breakfast_sp' => $weeklyBreakfastSP,
             'days' => $days
         ];
 
@@ -39,16 +43,12 @@ class MenuGenerator
     /**
      * Generate menu for a single day
      */
-    private function generateDayMenu($dayName, $dayIndex, $servingSize)
+    private function generateDayMenu($dayName, $dayIndex, $servingSize, $weeklyBreakfastSP = null)
     {
-        // Determine breakfast pool based on day
-        $isMondayFriday = ($dayIndex >= 0 && $dayIndex <= 4);
-        $isSaturday = ($dayIndex === 5);
-
         return [
             'day' => $dayName,
             'day_index' => $dayIndex,
-            'breakfast' => $this->recipeDb->getRandomBreakfast($isMondayFriday, $isSaturday),
+            'breakfast_sp' => $weeklyBreakfastSP, // Weekly breakfast special (same all week)
             'soup' => $this->recipeDb->getRandomSoup(),
             'special' => $this->recipeDb->getRandomSpecial(),
             'salad' => $this->recipeDb->getRandomSalad(),
@@ -68,12 +68,35 @@ class MenuGenerator
 
         $day = $this->currentMenu['days'][$dayIndex];
         $dayName = $day['day'];
+        $weeklyBreakfastSP = $this->currentMenu['weekly_breakfast_sp'] ?? null;
 
         $this->currentMenu['days'][$dayIndex] = $this->generateDayMenu(
             $dayName,
             $dayIndex,
-            $this->currentMenu['serving_size']
+            $this->currentMenu['serving_size'],
+            $weeklyBreakfastSP
         );
+
+        return $this->currentMenu;
+    }
+
+    /**
+     * Regenerate weekly breakfast special for all days
+     */
+    public function regenerateWeeklyBreakfastSP()
+    {
+        if (!isset($this->currentMenu['days'])) {
+            throw new Exception('No menu generated');
+        }
+
+        // Generate new weekly breakfast special
+        $newBreakfastSP = $this->recipeDb->getRandomBreakfast(true, false);
+        $this->currentMenu['weekly_breakfast_sp'] = $newBreakfastSP;
+
+        // Update all days with new breakfast SP
+        foreach ($this->currentMenu['days'] as $index => $day) {
+            $this->currentMenu['days'][$index]['breakfast_sp'] = $newBreakfastSP;
+        }
 
         return $this->currentMenu;
     }
