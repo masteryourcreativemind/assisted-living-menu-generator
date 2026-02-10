@@ -43,6 +43,14 @@
         </div>
         <p style="color: #666; font-size: 0.9em; margin-top: 10px;">💡 Tip: Use this to replace just one day's menu
             while keeping others.</p>
+
+        <!-- Saved Menus Section -->
+        <div id="saved-menus-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+            <h3 style="color: #667eea; margin-bottom: 10px;">📋 Previously Saved Menus</h3>
+            <div id="saved-menus-list">
+                <p style="color: #999; font-size: 0.9em;">No saved menus found.</p>
+            </div>
+        </div>
     </div>
 
     <!-- Menu Display Area -->
@@ -109,6 +117,7 @@
                 if (data.success) {
                     weeklyMenu = data.menu;
                     displayMenu();
+                    loadSavedWeeks(); // Refresh saved menus list
                 } else {
                     alert('Error: ' + data.error);
                 }
@@ -144,6 +153,7 @@
                 if (data.success) {
                     weeklyMenu = data.menu;
                     displayMenu();
+                    loadSavedWeeks();
                 } else {
                     alert('Error: ' + data.error);
                 }
@@ -173,8 +183,75 @@
                 if (data.success) {
                     weeklyMenu = data.menu;
                     displayMenu();
+                    loadSavedWeeks();
                 } else {
                     alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Load saved weeks from server (cookie-based)
+    function loadSavedWeeks() {
+        const formData = new FormData();
+        formData.append('action', 'get_saved_weeks');
+
+        fetch('<?php echo APP_URL; ?>/index.php', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.weeks.length > 0) {
+                    displaySavedWeeks(data.weeks);
+                }
+            })
+            .catch(error => console.error('Error loading saved weeks:', error));
+    }
+
+    // Display saved weeks in the sidebar
+    function displaySavedWeeks(weeks) {
+        const container = document.getElementById('saved-menus-list');
+        if (weeks.length === 0) {
+            container.innerHTML = '<p style="color: #999; font-size: 0.9em;">No saved menus found.</p>';
+            return;
+        }
+
+        let html = '';
+        weeks.forEach(function(w) {
+            html += '<button onclick="loadSavedMenu(\'' + w.week + '\')" ' +
+                'style="display:block; width:100%; text-align:left; padding:8px 12px; margin:4px 0; ' +
+                'background:#f0f4ff; border:1px solid #667eea; border-radius:4px; cursor:pointer; font-size:0.9em;">' +
+                '📅 Week: ' + w.week +
+                '<br><small style="color:#999;">Generated: ' + w.generated_at + '</small>' +
+                '</button>';
+        });
+        container.innerHTML = html;
+    }
+
+    // Load a previously saved menu
+    function loadSavedMenu(weekDate) {
+        const formData = new FormData();
+        formData.append('action', 'load_saved_menu');
+        formData.append('week', weekDate);
+
+        fetch('<?php echo APP_URL; ?>/index.php', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    weeklyMenu = data.menu;
+                    displayMenu();
+                } else {
+                    alert('No saved menu found for this week');
                 }
             })
             .catch(error => console.error('Error:', error));
@@ -184,24 +261,33 @@
     function displayMenu() {
         const display = document.getElementById('menu-display');
 
-        if (weeklyMenu.days.length === 0) {
+        if (!weeklyMenu.days || weeklyMenu.days.length === 0) {
             display.innerHTML = '<div class="loading">No menu generated</div>';
             return;
         }
 
-        let html = `<h2>📅 Weekly Menu (Serves ${weeklyMenu.serving_size} residents)</h2>`;
-        
+        let html = '<h2>📅 Weekly Menu (Serves ' + (weeklyMenu.serving_size || '?') + ' residents)</h2>';
+
         // Display Weekly Breakfast Special prominently
         if (weeklyMenu.weekly_breakfast_sp) {
-            html += `<div class="weekly-special-box" style="background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 8px;">
-                <h3 style="color: #92400e; margin-top: 0;">🍳 Weekly Breakfast Special (All Days)</h3>
-                ${formatRecipeHTML('', weeklyMenu.weekly_breakfast_sp)}
-            </div>`;
+            let breakfastName = typeof weeklyMenu.weekly_breakfast_sp === 'string'
+                ? weeklyMenu.weekly_breakfast_sp
+                : weeklyMenu.weekly_breakfast_sp.name;
+
+            html += '<div class="weekly-special-box" style="background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; margin: 20px 0; border-radius: 8px;">' +
+                '<h3 style="color: #92400e; margin-top: 0;">🍳 Weekly Breakfast Special (All Days)</h3>';
+
+            if (typeof weeklyMenu.weekly_breakfast_sp === 'object') {
+                html += formatRecipeHTML('', weeklyMenu.weekly_breakfast_sp);
+            } else {
+                html += '<div class="menu-section"><h4>' + breakfastName + '</h4></div>';
+            }
+            html += '</div>';
         }
-        
+
         html += '<div class="week-grid">';
 
-        weeklyMenu.days.forEach(dayMenu => {
+        weeklyMenu.days.forEach(function(dayMenu) {
             html += formatDayHTML(dayMenu);
         });
 
@@ -211,45 +297,74 @@
 
     // Format day as HTML
     function formatDayHTML(dayMenu) {
-        return `
-                <div class="day-menu">
-                    <h3>${dayMenu.day}</h3>
-                    <div class="menu-section" style="background: #fef3c7; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
-                        <h4 style="color: #92400e;">🍳 Breakfast: ${dayMenu.breakfast_sp ? dayMenu.breakfast_sp.name : 'Weekly Special (see above)'}</h4>
-                        <div class="menu-item-desc" style="font-style: italic; color: #78350f;">→ See Weekly Breakfast Special above</div>
-                    </div>
-                    ${formatRecipeHTML('🥘 Soup of the Day', dayMenu.soup)}
-                    ${formatRecipeHTML('⭐ Daily Special', dayMenu.special)}
-                    ${formatRecipeHTML('🥗 Weekly Salad', dayMenu.salad)}
-                    ${formatRecipeHTML('🍔 Weekly Burger', dayMenu.burger)}
-                </div>
-            `;
+        // Handle both full recipe objects and compact string names (from saved cookies)
+        let soupName = typeof dayMenu.soup === 'object' ? dayMenu.soup.name : dayMenu.soup;
+        let specialName = typeof dayMenu.special === 'object' ? dayMenu.special.name : dayMenu.special;
+        let saladName = typeof dayMenu.salad === 'object' ? dayMenu.salad.name : dayMenu.salad;
+        let burgerName = typeof dayMenu.burger === 'object' ? dayMenu.burger.name : dayMenu.burger;
+        let breakfastName = dayMenu.breakfast_sp
+            ? (typeof dayMenu.breakfast_sp === 'object' ? dayMenu.breakfast_sp.name : dayMenu.breakfast_sp)
+            : 'Weekly Special (see above)';
+
+        let html = '<div class="day-menu">' +
+            '<h3>' + dayMenu.day + '</h3>' +
+            '<div class="menu-section" style="background: #fef3c7; padding: 10px; border-radius: 4px; margin-bottom: 10px;">' +
+            '<h4 style="color: #92400e;">🍳 Breakfast: ' + breakfastName + '</h4>' +
+            '<div class="menu-item-desc" style="font-style: italic; color: #78350f;">→ See Weekly Breakfast Special above</div>' +
+            '</div>';
+
+        if (typeof dayMenu.soup === 'object') {
+            html += formatRecipeHTML('🥘 Soup of the Day', dayMenu.soup);
+        } else {
+            html += '<div class="menu-section"><h4>🥘 Soup of the Day: ' + soupName + '</h4></div>';
+        }
+
+        if (typeof dayMenu.special === 'object') {
+            html += formatRecipeHTML('⭐ Daily Special', dayMenu.special);
+        } else {
+            html += '<div class="menu-section"><h4>⭐ Daily Special: ' + specialName + '</h4></div>';
+        }
+
+        if (typeof dayMenu.salad === 'object') {
+            html += formatRecipeHTML('🥗 Weekly Salad', dayMenu.salad);
+        } else {
+            html += '<div class="menu-section"><h4>🥗 Weekly Salad: ' + saladName + '</h4></div>';
+        }
+
+        if (typeof dayMenu.burger === 'object') {
+            html += formatRecipeHTML('🍔 Weekly Burger', dayMenu.burger);
+        } else {
+            html += '<div class="menu-section"><h4>🍔 Weekly Burger: ' + burgerName + '</h4></div>';
+        }
+
+        html += '</div>';
+        return html;
     }
 
     // Format recipe as HTML
     function formatRecipeHTML(type, recipe) {
-        let html = `<div class="menu-section">
-                <h4>${type}: ${recipe.name}</h4>
-                <div class="menu-item-desc">${recipe.description}</div>`;
+        let html = '<div class="menu-section">' +
+                '<h4>' + type + ': ' + recipe.name + '</h4>' +
+                '<div class="menu-item-desc">' + recipe.description + '</div>';
 
         if (recipe.ingredients && recipe.ingredients.length > 0) {
             html += '<strong>Ingredients:</strong><ul class="ingredients-list">';
-            recipe.ingredients.forEach(ing => {
-                html += `<li>${ing}</li>`;
+            recipe.ingredients.forEach(function(ing) {
+                html += '<li>' + ing + '</li>';
             });
             html += '</ul>';
         }
 
         if (recipe.instructions && recipe.instructions.length > 0) {
             html += '<strong>Instructions:</strong><ol class="instructions-list">';
-            recipe.instructions.forEach(inst => {
-                html += `<li>${inst}</li>`;
+            recipe.instructions.forEach(function(inst) {
+                html += '<li>' + inst + '</li>';
             });
             html += '</ol>';
         }
 
         if (recipe.notes) {
-            html += `<div class="recipe-notes"><strong>Notes:</strong> ${recipe.notes}</div>`;
+            html += '<div class="recipe-notes"><strong>Notes:</strong> ' + recipe.notes + '</div>';
         }
 
         html += '</div>';
@@ -258,7 +373,7 @@
 
     // Export as Text
     function exportMenuAsText() {
-        if (weeklyMenu.days.length === 0) {
+        if (!weeklyMenu.days || weeklyMenu.days.length === 0) {
             alert('Please generate a menu first');
             return;
         }
@@ -285,7 +400,7 @@
 
     // Export as CSV
     function exportMenuAsCSV() {
-        if (weeklyMenu.days.length === 0) {
+        if (!weeklyMenu.days || weeklyMenu.days.length === 0) {
             alert('Please generate a menu first');
             return;
         }
@@ -312,7 +427,7 @@
 
     // Export as JSON
     function exportMenuAsJSON() {
-        if (weeklyMenu.days.length === 0) {
+        if (!weeklyMenu.days || weeklyMenu.days.length === 0) {
             alert('Please generate a menu first');
             return;
         }
@@ -370,5 +485,6 @@
     // Initialize on load
     document.addEventListener('DOMContentLoaded', function () {
         initializeWeek();
+        loadSavedWeeks(); // Load previously saved menus from cookies
     });
 </script>

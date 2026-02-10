@@ -62,7 +62,9 @@ class ExportHandler
         $text .= str_repeat('=', 70) . "\n\n";
 
         // Breakfast
-        $text .= $this->formatRecipeAsText('Breakfast', $day['breakfast']);
+        if (isset($day['breakfast_sp'])) {
+            $text .= $this->formatRecipeAsText('Breakfast', $day['breakfast_sp']);
+        }
 
         // Soup
         $text .= $this->formatRecipeAsText('Soup', $day['soup']);
@@ -119,7 +121,9 @@ class ExportHandler
 
         foreach ($this->menu['days'] as $day) {
             // Breakfast
-            $csv .= $this->formatRecipeAsCSV($day['day'], 'Breakfast', $day['breakfast']);
+            if (isset($day['breakfast_sp'])) {
+                $csv .= $this->formatRecipeAsCSV($day['day'], 'Breakfast', $day['breakfast_sp']);
+            }
             // Soup
             $csv .= $this->formatRecipeAsCSV($day['day'], 'Soup', $day['soup']);
             // Special
