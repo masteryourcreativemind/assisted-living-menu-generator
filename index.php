@@ -187,7 +187,8 @@ function saveMenuToCookie($weekDate, $menu)
     }
 
     $cookieValue = json_encode($savedMenus);
-    setcookie(MENU_COOKIE_NAME, $cookieValue, time() + MENU_COOKIE_DURATION, '/', '', false, false);
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie(MENU_COOKIE_NAME, $cookieValue, time() + MENU_COOKIE_DURATION, '/', '', $isSecure, false);
 }
 
 /**
