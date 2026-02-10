@@ -13,6 +13,10 @@ ini_set('log_errors', 1);
 // Start session
 session_start();
 
+// Cookie settings for menu persistence (30 days)
+define('MENU_COOKIE_NAME', 'almg_saved_menus');
+define('MENU_COOKIE_DURATION', 30 * 24 * 60 * 60); // 30 days
+
 // Define constants
 define('APP_NAME', 'Assisted Living Menu Generator');
 define('APP_VERSION', '2.0.0');
@@ -53,6 +57,9 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'
                 $menu = $menuGenerator->generateWeeklyMenu($weekDate, $servingSize);
                 $_SESSION['current_menu'] = $menu;
 
+                // Save menu to cookie for persistence across sessions
+                saveMenuToCookie($weekDate, $menu);
+
                 echo json_encode(['success' => true, 'menu' => $menu]);
                 break;
 
@@ -67,6 +74,10 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'
                 $menu = $menuGenerator->regenerateSingleDay($dayIndex);
                 $_SESSION['current_menu'] = $menu;
 
+                // Update cookie with regenerated menu
+                $weekDate = $menu['week'] ?? date('Y-W');
+                saveMenuToCookie($weekDate, $menu);
+
                 echo json_encode(['success' => true, 'menu' => $menu]);
                 break;
 
@@ -79,7 +90,28 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'
                 $menu = $menuGenerator->regenerateWeeklyBreakfastSP();
                 $_SESSION['current_menu'] = $menu;
 
+                // Update cookie with regenerated menu
+                $weekDate = $menu['week'] ?? date('Y-W');
+                saveMenuToCookie($weekDate, $menu);
+
                 echo json_encode(['success' => true, 'menu' => $menu]);
+                break;
+
+            case 'load_saved_menu':
+                $weekDate = isset($_POST['week']) ? sanitize_input($_POST['week']) : '';
+                $savedMenu = loadMenuFromCookie($weekDate);
+
+                if ($savedMenu) {
+                    $_SESSION['current_menu'] = $savedMenu;
+                    echo json_encode(['success' => true, 'menu' => $savedMenu]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'No saved menu found for this week']);
+                }
+                break;
+
+            case 'get_saved_weeks':
+                $savedWeeks = getSavedWeeksFromCookie();
+                echo json_encode(['success' => true, 'weeks' => $savedWeeks]);
                 break;
 
             case 'export':
@@ -111,6 +143,94 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'
         ]);
     }
     exit;
+}
+
+/**
+ * Save menu to cookie for persistence across browser sessions
+ */
+function saveMenuToCookie($weekDate, $menu)
+{
+    // Load existing saved menus from cookie
+    $savedMenus = [];
+    if (isset($_COOKIE[MENU_COOKIE_NAME])) {
+        $decoded = json_decode($_COOKIE[MENU_COOKIE_NAME], true);
+        if (is_array($decoded)) {
+            $savedMenus = $decoded;
+        }
+    }
+
+    // Store a compact version of the menu (names only to save cookie space)
+    $compactMenu = [
+        'week' => $menu['week'],
+        'serving_size' => $menu['serving_size'],
+        'generated_at' => $menu['generated_at'],
+        'weekly_breakfast_sp' => $menu['weekly_breakfast_sp']['name'] ?? '',
+        'days' => []
+    ];
+
+    foreach ($menu['days'] as $day) {
+        $compactMenu['days'][] = [
+            'day' => $day['day'],
+            'soup' => $day['soup']['name'] ?? '',
+            'special' => $day['special']['name'] ?? '',
+            'salad' => $day['salad']['name'] ?? '',
+            'burger' => $day['burger']['name'] ?? ''
+        ];
+    }
+
+    // Save indexed by week date (keep last 4 weeks)
+    $savedMenus[$weekDate] = $compactMenu;
+
+    // Limit to last 4 weeks to stay within cookie size limits
+    if (count($savedMenus) > 4) {
+        $savedMenus = array_slice($savedMenus, -4, 4, true);
+    }
+
+    $cookieValue = json_encode($savedMenus);
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie(MENU_COOKIE_NAME, $cookieValue, time() + MENU_COOKIE_DURATION, '/', '', $isSecure, false);
+}
+
+/**
+ * Load a saved menu from cookie
+ */
+function loadMenuFromCookie($weekDate)
+{
+    if (!isset($_COOKIE[MENU_COOKIE_NAME])) {
+        return null;
+    }
+
+    $savedMenus = json_decode($_COOKIE[MENU_COOKIE_NAME], true);
+    if (!is_array($savedMenus) || !isset($savedMenus[$weekDate])) {
+        return null;
+    }
+
+    return $savedMenus[$weekDate];
+}
+
+/**
+ * Get list of saved week dates from cookie
+ */
+function getSavedWeeksFromCookie()
+{
+    if (!isset($_COOKIE[MENU_COOKIE_NAME])) {
+        return [];
+    }
+
+    $savedMenus = json_decode($_COOKIE[MENU_COOKIE_NAME], true);
+    if (!is_array($savedMenus)) {
+        return [];
+    }
+
+    $weeks = [];
+    foreach ($savedMenus as $weekDate => $menu) {
+        $weeks[] = [
+            'week' => $weekDate,
+            'generated_at' => $menu['generated_at'] ?? ''
+        ];
+    }
+
+    return $weeks;
 }
 
 // Sanitize input function

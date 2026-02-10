@@ -15,7 +15,8 @@ class MenuGenerator
     }
 
     /**
-     * Generate a full week menu
+     * Generate a full week menu with no repeating items
+     * and no double meat types for lunch (special) and dinner (burger) on the same day
      */
     public function generateWeeklyMenu($weekDate, $servingSize = 25)
     {
@@ -25,8 +26,24 @@ class MenuGenerator
         // Generate weekly breakfast special (same for all days)
         $weeklyBreakfastSP = $this->recipeDb->getRandomBreakfast(true, false);
 
+        // Track used items across the week to prevent repeats
+        $usedSoups = [];
+        $usedSpecials = [];
+        $usedSalads = [];
+        $usedBurgers = [];
+
         foreach ($daysOfWeek as $index => $day) {
-            $days[] = $this->generateDayMenu($day, $index, $servingSize, $weeklyBreakfastSP);
+            $dayMenu = $this->generateDayMenuUnique(
+                $day, $index, $servingSize, $weeklyBreakfastSP,
+                $usedSoups, $usedSpecials, $usedSalads, $usedBurgers
+            );
+            $days[] = $dayMenu;
+
+            // Track used items
+            $usedSoups[] = $dayMenu['soup']['name'];
+            $usedSpecials[] = $dayMenu['special']['name'];
+            $usedSalads[] = $dayMenu['salad']['name'];
+            $usedBurgers[] = $dayMenu['burger']['name'];
         }
 
         $this->currentMenu = [
@@ -41,24 +58,35 @@ class MenuGenerator
     }
 
     /**
-     * Generate menu for a single day
+     * Generate a unique day menu avoiding already-used items
+     * and preventing same meat type for special and burger
      */
-    private function generateDayMenu($dayName, $dayIndex, $servingSize, $weeklyBreakfastSP = null)
+    private function generateDayMenuUnique($dayName, $dayIndex, $servingSize, $weeklyBreakfastSP, $usedSoups, $usedSpecials, $usedSalads, $usedBurgers)
     {
+        $soup = $this->recipeDb->getRandomSoup($usedSoups);
+        $salad = $this->recipeDb->getRandomSalad($usedSalads);
+
+        // Pick the special first, then pick a burger with a different meat type
+        $special = $this->recipeDb->getRandomSpecial($usedSpecials);
+        $specialMeatType = $this->recipeDb->getMeatType($special);
+
+        // Burger must not share the same meat type as the special
+        $burger = $this->recipeDb->getRandomBurger($usedBurgers, [$specialMeatType]);
+
         return [
             'day' => $dayName,
             'day_index' => $dayIndex,
-            'breakfast_sp' => $weeklyBreakfastSP, // Weekly breakfast special (same all week)
-            'soup' => $this->recipeDb->getRandomSoup(),
-            'special' => $this->recipeDb->getRandomSpecial(),
-            'salad' => $this->recipeDb->getRandomSalad(),
-            'burger' => $this->recipeDb->getRandomBurger(),
+            'breakfast_sp' => $weeklyBreakfastSP,
+            'soup' => $soup,
+            'special' => $special,
+            'salad' => $salad,
+            'burger' => $burger,
             'serving_size' => $servingSize
         ];
     }
 
     /**
-     * Regenerate a single day in current menu
+     * Regenerate a single day in current menu, avoiding items used on other days
      */
     public function regenerateSingleDay($dayIndex)
     {
@@ -70,11 +98,28 @@ class MenuGenerator
         $dayName = $day['day'];
         $weeklyBreakfastSP = $this->currentMenu['weekly_breakfast_sp'] ?? null;
 
-        $this->currentMenu['days'][$dayIndex] = $this->generateDayMenu(
+        // Collect items used on OTHER days to avoid repeats
+        $usedSoups = [];
+        $usedSpecials = [];
+        $usedSalads = [];
+        $usedBurgers = [];
+
+        foreach ($this->currentMenu['days'] as $i => $d) {
+            if ($i === $dayIndex) {
+                continue;
+            }
+            $usedSoups[] = $d['soup']['name'];
+            $usedSpecials[] = $d['special']['name'];
+            $usedSalads[] = $d['salad']['name'];
+            $usedBurgers[] = $d['burger']['name'];
+        }
+
+        $this->currentMenu['days'][$dayIndex] = $this->generateDayMenuUnique(
             $dayName,
             $dayIndex,
             $this->currentMenu['serving_size'],
-            $weeklyBreakfastSP
+            $weeklyBreakfastSP,
+            $usedSoups, $usedSpecials, $usedSalads, $usedBurgers
         );
 
         return $this->currentMenu;
