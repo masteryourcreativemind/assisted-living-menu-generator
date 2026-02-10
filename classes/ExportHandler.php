@@ -62,7 +62,7 @@ class ExportHandler
         $text .= str_repeat('=', 70) . "\n\n";
 
         // Breakfast
-        $text .= $this->formatRecipeAsText('Breakfast', $day['breakfast']);
+        $text .= $this->formatRecipeAsText('Breakfast', $day['breakfast_sp']);
 
         // Soup
         $text .= $this->formatRecipeAsText('Soup', $day['soup']);
@@ -75,6 +75,11 @@ class ExportHandler
 
         // Burger
         $text .= $this->formatRecipeAsText('Burger', $day['burger']);
+
+        // Dessert
+        if (isset($day['dessert'])) {
+            $text .= $this->formatRecipeAsText('Dessert', $day['dessert']);
+        }
 
         $text .= "\n";
         return $text;
@@ -119,7 +124,7 @@ class ExportHandler
 
         foreach ($this->menu['days'] as $day) {
             // Breakfast
-            $csv .= $this->formatRecipeAsCSV($day['day'], 'Breakfast', $day['breakfast']);
+            $csv .= $this->formatRecipeAsCSV($day['day'], 'Breakfast', $day['breakfast_sp']);
             // Soup
             $csv .= $this->formatRecipeAsCSV($day['day'], 'Soup', $day['soup']);
             // Special
@@ -128,6 +133,10 @@ class ExportHandler
             $csv .= $this->formatRecipeAsCSV($day['day'], 'Salad', $day['salad']);
             // Burger
             $csv .= $this->formatRecipeAsCSV($day['day'], 'Burger', $day['burger']);
+            // Dessert
+            if (isset($day['dessert'])) {
+                $csv .= $this->formatRecipeAsCSV($day['day'], 'Dessert', $day['dessert']);
+            }
         }
 
         $this->filename = 'Weekly_Menu_' . str_replace('-', '_', $this->menu['week']) . '.csv';

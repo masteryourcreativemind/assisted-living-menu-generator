@@ -82,6 +82,30 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'
                 echo json_encode(['success' => true, 'menu' => $menu]);
                 break;
 
+            case 'regenerate_burger':
+                // Load current menu from session
+                if (isset($_SESSION['current_menu'])) {
+                    $menuGenerator->currentMenu = $_SESSION['current_menu'];
+                }
+
+                $menu = $menuGenerator->regenerateWeeklyBurger();
+                $_SESSION['current_menu'] = $menu;
+
+                echo json_encode(['success' => true, 'menu' => $menu]);
+                break;
+
+            case 'regenerate_salad':
+                // Load current menu from session
+                if (isset($_SESSION['current_menu'])) {
+                    $menuGenerator->currentMenu = $_SESSION['current_menu'];
+                }
+
+                $menu = $menuGenerator->regenerateWeeklySalad();
+                $_SESSION['current_menu'] = $menu;
+
+                echo json_encode(['success' => true, 'menu' => $menu]);
+                break;
+
             case 'export':
                 $format = isset($_POST['format']) ? sanitize_input($_POST['format']) : 'text';
                 $menu = $_SESSION['current_menu'] ?? null;

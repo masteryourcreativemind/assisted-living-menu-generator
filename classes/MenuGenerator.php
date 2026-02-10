@@ -22,11 +22,13 @@ class MenuGenerator
         $daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         $days = [];
 
-        // Generate weekly breakfast special (same for all days)
+        // Generate weekly items (same for all days)
         $weeklyBreakfastSP = $this->recipeDb->getRandomBreakfast(true, false);
+        $weeklyBurger = $this->recipeDb->getRandomBurger();
+        $weeklySalad = $this->recipeDb->getRandomSalad();
 
         foreach ($daysOfWeek as $index => $day) {
-            $days[] = $this->generateDayMenu($day, $index, $servingSize, $weeklyBreakfastSP);
+            $days[] = $this->generateDayMenu($day, $index, $servingSize, $weeklyBreakfastSP, $weeklyBurger, $weeklySalad);
         }
 
         $this->currentMenu = [
@@ -34,6 +36,8 @@ class MenuGenerator
             'serving_size' => $servingSize,
             'generated_at' => date('Y-m-d H:i:s'),
             'weekly_breakfast_sp' => $weeklyBreakfastSP,
+            'weekly_burger' => $weeklyBurger,
+            'weekly_salad' => $weeklySalad,
             'days' => $days
         ];
 
@@ -43,7 +47,7 @@ class MenuGenerator
     /**
      * Generate menu for a single day
      */
-    private function generateDayMenu($dayName, $dayIndex, $servingSize, $weeklyBreakfastSP = null)
+    private function generateDayMenu($dayName, $dayIndex, $servingSize, $weeklyBreakfastSP = null, $weeklyBurger = null, $weeklySalad = null)
     {
         return [
             'day' => $dayName,
@@ -51,8 +55,9 @@ class MenuGenerator
             'breakfast_sp' => $weeklyBreakfastSP, // Weekly breakfast special (same all week)
             'soup' => $this->recipeDb->getRandomSoup(),
             'special' => $this->recipeDb->getRandomSpecial(),
-            'salad' => $this->recipeDb->getRandomSalad(),
-            'burger' => $this->recipeDb->getRandomBurger(),
+            'salad' => $weeklySalad, // Weekly salad (same all week)
+            'burger' => $weeklyBurger, // Weekly burger (same all week)
+            'dessert' => $this->recipeDb->getRandomDessert(), // Daily dessert
             'serving_size' => $servingSize
         ];
     }
@@ -69,12 +74,16 @@ class MenuGenerator
         $day = $this->currentMenu['days'][$dayIndex];
         $dayName = $day['day'];
         $weeklyBreakfastSP = $this->currentMenu['weekly_breakfast_sp'] ?? null;
+        $weeklyBurger = $this->currentMenu['weekly_burger'] ?? null;
+        $weeklySalad = $this->currentMenu['weekly_salad'] ?? null;
 
         $this->currentMenu['days'][$dayIndex] = $this->generateDayMenu(
             $dayName,
             $dayIndex,
             $this->currentMenu['serving_size'],
-            $weeklyBreakfastSP
+            $weeklyBreakfastSP,
+            $weeklyBurger,
+            $weeklySalad
         );
 
         return $this->currentMenu;
@@ -96,6 +105,48 @@ class MenuGenerator
         // Update all days with new breakfast SP
         foreach ($this->currentMenu['days'] as $index => $day) {
             $this->currentMenu['days'][$index]['breakfast_sp'] = $newBreakfastSP;
+        }
+
+        return $this->currentMenu;
+    }
+
+    /**
+     * Regenerate weekly burger for all days
+     */
+    public function regenerateWeeklyBurger()
+    {
+        if (!isset($this->currentMenu['days'])) {
+            throw new Exception('No menu generated');
+        }
+
+        // Generate new weekly burger
+        $newBurger = $this->recipeDb->getRandomBurger();
+        $this->currentMenu['weekly_burger'] = $newBurger;
+
+        // Update all days with new burger
+        foreach ($this->currentMenu['days'] as $index => $day) {
+            $this->currentMenu['days'][$index]['burger'] = $newBurger;
+        }
+
+        return $this->currentMenu;
+    }
+
+    /**
+     * Regenerate weekly salad for all days
+     */
+    public function regenerateWeeklySalad()
+    {
+        if (!isset($this->currentMenu['days'])) {
+            throw new Exception('No menu generated');
+        }
+
+        // Generate new weekly salad
+        $newSalad = $this->recipeDb->getRandomSalad();
+        $this->currentMenu['weekly_salad'] = $newSalad;
+
+        // Update all days with new salad
+        foreach ($this->currentMenu['days'] as $index => $day) {
+            $this->currentMenu['days'][$index]['salad'] = $newSalad;
         }
 
         return $this->currentMenu;

@@ -22,8 +22,9 @@
         </div>
         <button class="btn-generate" onclick="generateFullWeek()">🚀 Generate Full Week Menu</button>
         <button class="btn-generate" onclick="regenerateWeeklyBreakfastSP()" style="background: #f59e0b;">🍳 Regenerate Weekly Breakfast SP</button>
-        <button class="btn-generate" onclick="regenerateDay()" style="background: #3182ce;">🔄 Regenerate Single
-            Day</button>
+        <button class="btn-generate" onclick="regenerateWeeklyBurger()" style="background: #8b5cf6;">🍔 Regenerate Weekly Burger</button>
+        <button class="btn-generate" onclick="regenerateWeeklySalad()" style="background: #10b981;">🥗 Regenerate Weekly Salad</button>
+        <button class="btn-generate" onclick="regenerateDay()" style="background: #3182ce;">🔄 Regenerate Single Day</button>
     </div>
 
     <!-- Day Selector for Regenerate -->
@@ -180,6 +181,64 @@
             .catch(error => console.error('Error:', error));
     }
 
+    // Regenerate weekly burger
+    function regenerateWeeklyBurger() {
+        if (weeklyMenu.days.length === 0) {
+            alert('Please generate full week first');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action', 'regenerate_burger');
+
+        fetch('<?php echo APP_URL; ?>/index.php', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    weeklyMenu = data.menu;
+                    displayMenu();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Regenerate weekly salad
+    function regenerateWeeklySalad() {
+        if (weeklyMenu.days.length === 0) {
+            alert('Please generate full week first');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action', 'regenerate_salad');
+
+        fetch('<?php echo APP_URL; ?>/index.php', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    weeklyMenu = data.menu;
+                    displayMenu();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
     // Display menu
     function displayMenu() {
         const display = document.getElementById('menu-display');
@@ -199,6 +258,22 @@
             </div>`;
         }
         
+        // Display Weekly Burger prominently
+        if (weeklyMenu.weekly_burger) {
+            html += `<div class="weekly-special-box" style="background: #ede9fe; border: 2px solid #8b5cf6; padding: 20px; margin: 20px 0; border-radius: 8px;">
+                <h3 style="color: #5b21b6; margin-top: 0;">🍔 Weekly Burger (All Days)</h3>
+                ${formatRecipeHTML('', weeklyMenu.weekly_burger)}
+            </div>`;
+        }
+        
+        // Display Weekly Salad prominently
+        if (weeklyMenu.weekly_salad) {
+            html += `<div class="weekly-special-box" style="background: #d1fae5; border: 2px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 8px;">
+                <h3 style="color: #065f46; margin-top: 0;">🥗 Weekly Salad (All Days)</h3>
+                ${formatRecipeHTML('', weeklyMenu.weekly_salad)}
+            </div>`;
+        }
+        
         html += '<div class="week-grid">';
 
         weeklyMenu.days.forEach(dayMenu => {
@@ -211,7 +286,7 @@
 
     // Format day as HTML
     function formatDayHTML(dayMenu) {
-        return `
+        let html = `
                 <div class="day-menu">
                     <h3>${dayMenu.day}</h3>
                     <div class="menu-section" style="background: #fef3c7; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
@@ -220,10 +295,22 @@
                     </div>
                     ${formatRecipeHTML('🥘 Soup of the Day', dayMenu.soup)}
                     ${formatRecipeHTML('⭐ Daily Special', dayMenu.special)}
-                    ${formatRecipeHTML('🥗 Weekly Salad', dayMenu.salad)}
-                    ${formatRecipeHTML('🍔 Weekly Burger', dayMenu.burger)}
-                </div>
-            `;
+                    <div class="menu-section" style="background: #d1fae5; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                        <h4 style="color: #065f46;">🥗 Weekly Salad: ${dayMenu.salad ? dayMenu.salad.name : 'See above'}</h4>
+                        <div class="menu-item-desc" style="font-style: italic; color: #047857;">→ See Weekly Salad above</div>
+                    </div>
+                    <div class="menu-section" style="background: #ede9fe; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                        <h4 style="color: #5b21b6;">🍔 Weekly Burger: ${dayMenu.burger ? dayMenu.burger.name : 'See above'}</h4>
+                        <div class="menu-item-desc" style="font-style: italic; color: #6d28d9;">→ See Weekly Burger above</div>
+                    </div>`;
+        
+        // Add dessert if it exists
+        if (dayMenu.dessert) {
+            html += formatRecipeHTML('🍰 Daily Dessert', dayMenu.dessert);
+        }
+        
+        html += `</div>`;
+        return html;
     }
 
     // Format recipe as HTML
