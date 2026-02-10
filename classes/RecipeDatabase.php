@@ -7,6 +7,11 @@
 class RecipeDatabase
 {
     private $recipes = [];
+    
+    // Dessert generation constants
+    const FRUIT_COMBINATION_CHANCE = 30; // Percentage chance to generate fruit combination
+    const MIN_FRUITS_IN_COMBO = 2;
+    const MAX_FRUITS_IN_COMBO = 3;
 
     public function __construct()
     {
@@ -77,7 +82,7 @@ class RecipeDatabase
         $allDesserts = array_merge($desserts, $fruits);
         
         // Sometimes generate a mixed fruit cup
-        if (count($fruits) >= 2 && rand(1, 100) <= 30) { // 30% chance of fruit combination
+        if (count($fruits) >= 2 && rand(1, 100) <= self::FRUIT_COMBINATION_CHANCE) {
             return $this->generateFruitCombination();
         }
         
@@ -91,12 +96,12 @@ class RecipeDatabase
     {
         $fruits = $this->recipes['fruits'] ?? [];
         
-        if (count($fruits) < 2) {
+        if (count($fruits) < self::MIN_FRUITS_IN_COMBO) {
             return $this->getDefaultDessert();
         }
         
         // Randomly select 2-3 fruits
-        $numFruits = rand(2, min(3, count($fruits)));
+        $numFruits = rand(self::MIN_FRUITS_IN_COMBO, min(self::MAX_FRUITS_IN_COMBO, count($fruits)));
         $selectedFruits = [];
         $shuffledFruits = $fruits;
         shuffle($shuffledFruits);

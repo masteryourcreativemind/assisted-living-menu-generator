@@ -296,11 +296,11 @@
                     ${formatRecipeHTML('🥘 Soup of the Day', dayMenu.soup)}
                     ${formatRecipeHTML('⭐ Daily Special', dayMenu.special)}
                     <div class="menu-section" style="background: #d1fae5; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
-                        <h4 style="color: #065f46;">🥗 Weekly Salad: ${dayMenu.salad ? dayMenu.salad.name : 'See above'}</h4>
+                        <h4 style="color: #065f46;">🥗 Weekly Salad: ${dayMenu.salad ? dayMenu.salad.name : 'Weekly Salad'}</h4>
                         <div class="menu-item-desc" style="font-style: italic; color: #047857;">→ See Weekly Salad above</div>
                     </div>
                     <div class="menu-section" style="background: #ede9fe; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
-                        <h4 style="color: #5b21b6;">🍔 Weekly Burger: ${dayMenu.burger ? dayMenu.burger.name : 'See above'}</h4>
+                        <h4 style="color: #5b21b6;">🍔 Weekly Burger: ${dayMenu.burger ? dayMenu.burger.name : 'Weekly Burger'}</h4>
                         <div class="menu-item-desc" style="font-style: italic; color: #6d28d9;">→ See Weekly Burger above</div>
                     </div>`;
         
