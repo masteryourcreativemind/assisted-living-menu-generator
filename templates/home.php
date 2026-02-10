@@ -98,7 +98,7 @@
         formData.append('week', week);
         formData.append('serving_size', servingSize);
 
-        fetch('<?php echo APP_URL; ?>/index.php', {
+        fetch('index.php', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -133,7 +133,7 @@
         formData.append('action', 'regenerate_day');
         formData.append('day_index', dayIndex);
 
-        fetch('<?php echo APP_URL; ?>/index.php', {
+        fetch('index.php', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -162,7 +162,7 @@
         const formData = new FormData();
         formData.append('action', 'regenerate_breakfast_sp');
 
-        fetch('<?php echo APP_URL; ?>/index.php', {
+        fetch('index.php', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -191,7 +191,7 @@
         const formData = new FormData();
         formData.append('action', 'regenerate_burger');
 
-        fetch('<?php echo APP_URL; ?>/index.php', {
+        fetch('index.php', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -220,7 +220,7 @@
         const formData = new FormData();
         formData.append('action', 'regenerate_salad');
 
-        fetch('<?php echo APP_URL; ?>/index.php', {
+        fetch('index.php', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -354,7 +354,7 @@
         formData.append('action', 'export');
         formData.append('format', 'text');
 
-        fetch('<?php echo APP_URL; ?>/index.php', {
+        fetch('index.php', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -381,7 +381,7 @@
         formData.append('action', 'export');
         formData.append('format', 'csv');
 
-        fetch('<?php echo APP_URL; ?>/index.php', {
+        fetch('index.php', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -408,7 +408,7 @@
         formData.append('action', 'export');
         formData.append('format', 'json');
 
-        fetch('<?php echo APP_URL; ?>/index.php', {
+        fetch('index.php', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
